@@ -175,7 +175,7 @@ export default function Landing() {
         <div className="foot-logo-float">
           <img
             className="foot-logo"
-            src="/media/meridian-edge-icon.png"
+            src="/media/meridian-mark-champagne.png"
             alt=""
             width={1254}
             height={1254}
