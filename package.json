@@ -1,38 +1,33 @@
 {
-  "name": "site",
+  "name": "meridian-showcase",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm build",
     "sync": "python3 scripts/sync-analyses.py",
     "scorer-parity": "node scripts/scorer-parity.mjs"
   },
   "dependencies": {
-    "@vercel/blob": "^2.8.0",
-    "d3-geo": "^3.1.1",
-    "d3-scale": "^4.0.2",
-    "d3-shape": "^3.2.0",
-    "maplibre-gl": "^6.6.0",
     "next": "16.3.3",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "topojson-client": "^3.1.0"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/d3-geo": "^3.1.1",
-    "@types/d3-scale": "^4.0.9",
-    "@types/d3-shape": "^3.2.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/topojson-client": "^3.1.5",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
+    "prettier": "3.9.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

@@ -14,7 +14,9 @@ export const metadata: Metadata = {
     description: "Power for AI data centers.",
     url: "https://meridian.kianfoshee.com",
     siteName: "Meridian",
-    images: [{ url: "/og.png", width: 1729, height: 910, alt: "Meridian — Power for AI data centers." }],
+    images: [
+      { url: "/og.png", width: 1729, height: 910, alt: "Meridian — Power for AI data centers." },
+    ],
     type: "website",
   },
   twitter: {
