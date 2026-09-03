@@ -1,9 +1,5 @@
 # Meridian
 
-Static landing page for `meridian.kianfoshee.com`, hosted with GitHub Pages.
+Public landing site for Meridian, published at [meridian.kianfoshee.com](https://meridian.kianfoshee.com).
 
-## Local preview
-
-```bash
-python3 -m http.server 3000
-```
+The site is built with Next.js and exported as static files to `docs/` for GitHub Pages.

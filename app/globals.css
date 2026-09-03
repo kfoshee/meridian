@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #050403; --surface: #0d0b07; --line: #221c10; --line-2: #3a3018;
+  --gold: #d4af37; --gold-hi: #f3d97a; --gold-lo: #8f7420; --gold-dim: #3d3212;
+  --ink: #f7f2e6; --muted: #b8ac8c; --faint: #7a705a; --ember: #d2622a;
+  --ease: cubic-bezier(0.2, 0, 0, 1); --t: 240ms;
+}
+html { color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui), system-ui, sans-serif; font-size: 16px; font-feature-settings: "tnum"; -webkit-font-smoothing: antialiased; }
+.display { font-family: var(--font-display), Georgia, serif; font-feature-settings: "tnum", "lnum"; letter-spacing: -0.005em; }
+.mono { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+.label { color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+.goldtext { color: var(--gold-hi); text-shadow: 0 0 40px rgba(243,217,122,0.25); }
+.chip { color: var(--muted); padding: 8px 2px; font-size: 15px; font-weight: 500; letter-spacing: 0.02em; border-bottom: 1px solid transparent; transition: color var(--t) var(--ease), border-color var(--t) var(--ease); cursor: pointer; }
+.chip:hover { color: var(--ink); }
+.chip[aria-pressed="true"] { color: var(--gold-hi); border-color: var(--gold); }
+.chip:focus-visible, button:focus-visible, input:focus-visible, a:focus-visible { outline: 1px solid var(--gold-hi); outline-offset: 3px; }
+.hair { border-top: 1px solid var(--line); }
+.rise { animation: rise 520ms var(--ease) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.fade { animation: fade 900ms var(--ease) both; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.bar { transform-origin: bottom; animation: grow 520ms var(--ease) both; }
+@keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1600ms var(--ease) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.ring { transition: stroke-dashoffset 900ms var(--ease), stroke var(--t) var(--ease), stroke-width var(--t) var(--ease); }
+.pulse { animation: pulse 2800ms ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes pulse { 0%, 100% { opacity: 0.55; transform: scale(0.92); } 50% { opacity: 1; transform: scale(1.08); } }
+.breathe { animation: breathe 2400ms var(--ease) 1; transform-origin: center; transform-box: fill-box; }
+@keyframes breathe { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.06); } 100% { transform: scale(1); } }
+.node-hit { cursor: pointer; }
+input[type=range] { accent-color: var(--gold); }
+.halo { background: radial-gradient(ellipse 60% 55% at 45% 50%, rgba(212,175,55,0.10), rgba(212,175,55,0.03) 45%, transparent 70%); }
+@media (prefers-reduced-motion: reduce) { .rise, .fade, .bar, .draw, .ring, .breathe, .pulse, * { animation: none !important; transition: none !important; } .draw { stroke-dashoffset: 0; } }
+::selection { background: var(--gold-dim); }
+
+/* top bars on small screens */
+@media (max-width: 640px) { header nav.label { gap: 14px; font-size: 10.5px; letter-spacing: 0.1em; flex-wrap: wrap; justify-content: flex-end; } header .display { font-size: 18px; } }
+
+/* nav links: underline reveal */
+header nav.label a { position: relative; transition: color 250ms var(--ease); }
+header nav.label a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px; background: var(--gold-hi); transform: scaleX(0); transform-origin: left; transition: transform 300ms var(--ease); }
+header nav.label a:hover::after { transform: scaleX(1); }
