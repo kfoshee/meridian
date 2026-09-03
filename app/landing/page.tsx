@@ -167,14 +167,20 @@ export default function Landing() {
     <ModelStrip />
     <Contact />
     <footer className="foot" aria-label="Meridian">
-      <div className="foot-logo-float">
-        <img
-          className="foot-logo"
-          src="/media/meridian-mark.png"
-          alt="Meridian"
-          width={1362}
-          height={1155}
-        />
+      <div className="foot-lockup">
+        <div className="foot-copy">
+          <span className="foot-name">Meridian</span>
+          <span className="foot-tagline">Power for AI data centers.</span>
+        </div>
+        <div className="foot-logo-float">
+          <img
+            className="foot-logo"
+            src="/media/meridian-mark.png"
+            alt=""
+            width={1362}
+            height={1155}
+          />
+        </div>
       </div>
     </footer>
   </>);
