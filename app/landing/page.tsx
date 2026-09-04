@@ -56,7 +56,7 @@ export default function Landing() {
     setOrigin();
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // The scene chases the real scroll position over a few frames (τ = 150 ms), so a wheel tick becomes a
+    // The scene chases the real scroll position over a few frames (τ = 30 ms), so a wheel tick becomes a
     // short glide instead of a jump. Scrolling itself is untouched; only what the scene shows is eased.
     let raf = 0, Ps = -1, lastT = 0;
     const update = (now: number = performance.now()) => {
@@ -64,7 +64,7 @@ export default function Landing() {
       const r = el.getBoundingClientRect();
       const Pr = reduce ? 1 : clamp(-r.top / (r.height - innerHeight));
       if (Ps < 0 || reduce) Ps = Pr;
-      else { const dt = Math.min(64, now - lastT || 16); Ps += (Pr - Ps) * (1 - Math.exp(-dt / 150)); if (Math.abs(Pr - Ps) < 0.00005) Ps = Pr; }
+      else { const dt = Math.min(64, now - lastT || 16); Ps += (Pr - Ps) * (1 - Math.exp(-dt / 30)); if (Math.abs(Pr - Ps) < 0.00005) Ps = Pr; }
       lastT = now;
       const P = Ps;
       // hero
@@ -75,12 +75,10 @@ export default function Landing() {
       const set = clamp((p - 0.80) / 0.20);
       el.style.setProperty("--p", p.toFixed(4));
       el.style.setProperty("--peak", (1 - Math.abs(p * 2 - 1)).toFixed(4));
-      // the sun rides the grid: it rests on row lines and glides between them
-      const cellPxNow = cellPx(), rawPx = (sy + set * set * (110 - sy)) / 100 * innerHeight;
-      const row = rawPx / cellPxNow, base = Math.floor(row), f = row - base;
-      const glide = f < 0.2 ? 0 : f > 0.8 ? 1 : (() => { const u = (f - 0.2) / 0.6; return u * u * (3 - 2 * u); })();
-      const snappedPx = Math.max(1, base + glide) * cellPxNow;
-      el.style.setProperty("--sy", (snappedPx / innerHeight * 100).toFixed(3));
+      // the sun rides the meridian: continuous, no snapping
+      const sunPx = (sy + set * set * (110 - sy)) / 100 * innerHeight;
+      el.style.setProperty("--sy", (sunPx / innerHeight * 100).toFixed(3));
+      el.style.setProperty("--sypx", `${sunPx.toFixed(2)}px`);
       el.style.setProperty("--out", out.toFixed(4));
       el.style.setProperty("--set", set.toFixed(4));
       el.classList.toggle("scrolled", P > 0.01);
