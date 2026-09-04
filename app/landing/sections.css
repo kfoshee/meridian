@@ -263,7 +263,7 @@
 
 /* the campus answers the legend: hover (or the slow auto-pass) lights one part at a time */
 .campus [data-part] { transition: filter 400ms var(--ease), opacity 400ms var(--ease); }
-.campus[data-hot] [data-part].on:not(.hot) { opacity: 0.3; }
+.campus[data-hot] [data-part]:not([data-part="0"]).on:not(.hot) { opacity: 0.3; }
 .campus [data-part].hot { filter: drop-shadow(0 0 6px rgba(243,217,122,0.55)); }
 .campus [data-part].hot .f-top { stroke: var(--gold-hi); fill: rgba(243,217,122,0.2); }
 .campus [data-part].hot .f-right, .campus [data-part].hot .f-left { stroke: var(--gold); }
