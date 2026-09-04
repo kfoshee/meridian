@@ -181,7 +181,7 @@ export default function Landing() {
     <Contact />
     <footer ref={foot} className={`foot${footIn ? " in" : ""}`} aria-label="Meridian">
       <div className="foot-lockup">
-        <img className="foot-logo" src="/media/meridian-mark-17.webp" alt="" width={760} height={645} decoding="async" />
+        <img className="foot-logo" src="/media/meridian-mark-18.webp" alt="" width={760} height={645} decoding="async" />
         <span className="foot-name">Meridian</span>
         <span className="foot-tagline">Power for AI data centers.</span>
       </div>
