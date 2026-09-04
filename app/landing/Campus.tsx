@@ -48,7 +48,7 @@ export const STEPS = CHAPTERS.length + 1; // slab first, then seven decisions
 // p ∈ [0,1] is the section's scroll progress; chapter 0 = the slab, 1..7 = the decisions, 8 = complete
 export default function Campus({ p }: { p: number }) {
   const [hover, setHover] = useState<number | null>(null);
-  const chapter = Math.min(STEPS, Math.floor(p * (STEPS + 0.999)));
+  const chapter = Math.min(STEPS, Math.max(0, p));   // p is the chapter index, set only when it changes
   const done = chapter >= STEPS;
   const active = done ? hover : chapter >= 1 ? chapter : null;
   const built = (n: number) => chapter >= n;
@@ -72,7 +72,6 @@ export default function Campus({ p }: { p: number }) {
           </>) : (<>
             <div className="chapter-n">{done ? "7 / 7" : "0 / 7"}</div>
             <div className="chapter-name">{done ? "The whole campus" : "A parcel and a slab"}</div>
-            {done && <div className="chapter-we late">Optimized for income and reliability.</div>}
           </>)}
         </div>
         <ol className="legend">
