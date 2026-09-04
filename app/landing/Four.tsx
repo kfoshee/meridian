@@ -10,6 +10,11 @@ export default function Four() {
     const el = draftRef.current; if (!el) return;
     // once the campus is complete, the long track folds to one screen and the section scrolls like any other
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setChapter(STEPS); return; }
+    // phones: no pinned track; the campus builds itself when the section comes into view
+    if (matchMedia("(max-width: 900px)").matches) {
+      const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setChapter(STEPS); io.disconnect(); } }, { threshold: 0.25 });
+      io.observe(el); return () => io.disconnect();
+    }
     let raf = 0, last = 0;
     // the chapter index from raw progress; React renders only when the index changes (at most eight times per pass)
     const update = () => { raf = 0; const r = el.getBoundingClientRect(); const v = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));

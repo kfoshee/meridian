@@ -36,7 +36,7 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
   useEffect(() => { if (!on) return; const t = setTimeout(() => setSettled(true), 2300); return () => clearTimeout(t); }, [on]);
   useEffect(() => { const m = matchMedia("(max-width: 640px)"); const f = () => setNarrow(m.matches); f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
   const geo = useMemo(() => {
-    const inEnd = narrow ? 300 : 90, outEnd = narrow ? 900 : 1010;
+    const inEnd = narrow ? 290 : 90, outEnd = narrow ? 950 : 1010;
     // pins on all four edges of the substrate
     const pins: { x: number; y: number; w: number; d: number }[] = [];
     for (let i = 0; i < PIN_N; i++) {
@@ -70,7 +70,7 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
   return (
     <div className={`die-wrap${on ? " on" : ""}${settled ? " settled" : ""}`} tabIndex={-1}>
       <div className="die-row" aria-hidden="true">{INPUTS.map(w => <span key={w}>{w}</span>)}</div>
-    <svg className="die" viewBox={narrow ? "280 40 640 400" : "0 0 1280 500"} aria-hidden="true">
+    <svg className="die" viewBox={narrow ? "270 30 700 420" : "0 0 1280 500"} aria-hidden="true">
       <defs>
         <radialGradient id="die-glow"><stop offset="0" stopColor="#f3d97a" stopOpacity="0.9" /><stop offset="0.35" stopColor="#f3d97a" stopOpacity="0.28" /><stop offset="1" stopColor="#f3d97a" stopOpacity="0" /></radialGradient>
         <filter id="die-blur" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="9" /></filter>

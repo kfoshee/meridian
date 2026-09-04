@@ -566,3 +566,12 @@ html { overflow-anchor: none; } /* the campus track folds itself; the browser mu
 
 /* the campus section arrives over the photograph with a soft edge, not a hard line */
 .draft::before { content: ""; position: absolute; left: 0; right: 0; top: -140px; height: 140px; background: linear-gradient(180deg, rgba(0,0,0,0), #000); pointer-events: none; z-index: 2; }
+
+/* phones: the campus is a normal section, built on arrival, full width */
+@media (max-width: 900px) {
+  .draft { height: auto !important; min-height: 100svh; }
+  .draft-scene { position: relative; height: auto; min-height: 100svh; }
+  .campus { width: 100%; }
+  .campus-stage { max-height: none; }
+}
+@media (max-width: 640px) { .die { overflow: hidden; } }
