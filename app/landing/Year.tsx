@@ -38,7 +38,7 @@ const Year = forwardRef<YearHandle, { photo: HTMLImageElement | null }>(function
       const split = ease(clamp((yp - 0.08) / 0.16));
       const settle = ease(clamp((yp - 0.22) / 0.14));
       const ripple = easeC(clamp((yp - 0.30) / 0.42));
-      const dissolve = easeC(clamp((yp - 0.58) / 0.28));
+      const dissolve = easeC(clamp((yp - 0.58) / 0.32));
       const close = dissolve;
       if (enter <= 0 || shrink >= 1) return;                      // before the year begins, or after the gallery has taken over
 
@@ -103,8 +103,6 @@ const Year = forwardRef<YearHandle, { photo: HTMLImageElement | null }>(function
       }
       // the photograph arrives as one cross-fade (a single draw, so scrolling stays smooth)
       if (dissolve > 0 && photo) { g.globalAlpha = enter * dissolve; g.drawImage(photo, sx0, sy0, sw, sh); }
-      const dark = ease(clamp((yp - 0.93) / 0.07));
-      if (dark > 0) { g.globalAlpha = dark; g.fillStyle = "#000"; g.fillRect(0, 0, w, h); g.globalAlpha = 1; }
       g.globalAlpha = 1;
     },
   }), [photo]);
