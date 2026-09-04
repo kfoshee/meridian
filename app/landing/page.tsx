@@ -181,7 +181,9 @@ export default function Landing() {
     <Contact />
     <footer ref={foot} className={`foot${footIn ? " in" : ""}`} aria-label="Meridian">
       <div className="foot-lockup">
-        <img className="foot-logo" src="/media/meridian-mark-20.webp" alt="" width={896} height={793} decoding="async" />
+        <div className="foot-logo-wrap" onPointerMove={e => { const r = e.currentTarget.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5; e.currentTarget.style.setProperty("--ry", `${(x * 26).toFixed(1)}deg`); e.currentTarget.style.setProperty("--rx", `${(-y * 22).toFixed(1)}deg`); }} onPointerLeave={e => { e.currentTarget.style.setProperty("--ry", "0deg"); e.currentTarget.style.setProperty("--rx", "0deg"); }}>
+          <img className="foot-logo" src="/media/meridian-mark-20.webp" alt="" width={896} height={793} decoding="async" />
+        </div>
         <span className="foot-name">Meridian</span>
         <span className="foot-tagline">Power for AI data centers.</span>
       </div>
