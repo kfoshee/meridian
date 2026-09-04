@@ -79,7 +79,11 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     // so the model link lands on the nearest node -- the label and the program do not change
     if (saved && !(saved.guessed && ix && saved.nodeId == null)) return;
     const ctrl = new AbortController();
-    fetch("/api/where/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null).then(g => {
+    // the hosting edge's guess first (Vercel); on a static host, a public IP lookup (city-level, no key, no prompt)
+    const edge = fetch("/api/where/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null).catch(() => null);
+    const open = () => fetch("https://get.geojs.io/v1/ip/geo.json", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null)
+      .then(j => j && Number.isFinite(+j.latitude) && Number.isFinite(+j.longitude) ? { ok: true, lat: +j.latitude, lon: +j.longitude } : null).catch(() => null);
+    edge.then(g => (g && g.ok) ? g : open()).then(g => {
       if (!g || !g.ok) return;
       const now = readPlace();
       if (now && !now.guessed) return;
