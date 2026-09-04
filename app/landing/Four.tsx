@@ -9,14 +9,13 @@ export default function Four() {
   useEffect(() => {
     const el = draftRef.current; if (!el) return;
     // once the campus is complete, the long track folds to one screen and the section scrolls like any other
-    const collapse = () => { const h = el.getBoundingClientRect().height, y = scrollY; el.classList.add("built"); el.style.height = "100svh"; scrollTo({ top: y - (h - innerHeight), behavior: "instant" }); };
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setChapter(STEPS); el.classList.add("built"); el.style.height = "100svh"; return; }
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setChapter(STEPS); return; }
     let raf = 0, last = 0;
     // the chapter index from raw progress; React renders only when the index changes (at most eight times per pass)
-    const update = () => { raf = 0; if (el.classList.contains("built")) return; const r = el.getBoundingClientRect(); const v = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
+    const update = () => { raf = 0; const r = el.getBoundingClientRect(); const v = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
       const c = Math.min(STEPS, Math.floor(v * (STEPS + 0.999)));
       if (c > last) { last = c; setChapter(c); }   /* builds once per page load; scrolling back never un-builds it */
-      if (v >= 1) collapse(); };
+      };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
     update(); addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onScroll);
     return () => { removeEventListener("scroll", onScroll); removeEventListener("resize", onScroll); cancelAnimationFrame(raf); };

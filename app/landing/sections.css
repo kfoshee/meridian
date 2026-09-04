@@ -325,7 +325,7 @@
 @media (max-width: 640px) { .campus-side { grid-template-columns: 1fr; } .legend { display: none; } .draft-scene { justify-content: flex-start; padding-top: 10vh; } }
 
 /* the design section is a scroll-driven scene: tall track, pinned stage */
-.draft { height: calc(100svh * 9.5) !important; min-height: 0 !important; display: block !important; padding: 0 !important; background: #000; position: relative; overflow: visible !important; }
+.draft { height: calc(100svh * 6) !important; min-height: 0 !important; display: block !important; padding: 0 !important; background: #000; position: relative; overflow: visible !important; }
 .draft-scene { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: 3vh; padding: 6vh 6vw; overflow: hidden; }
 
 /* the model as a part: an isometric compute die, signals in, answers out */
