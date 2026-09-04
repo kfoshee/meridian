@@ -550,7 +550,7 @@ html { overflow-anchor: none; } /* the campus track folds itself; the browser mu
 .where-type { position: relative; margin-top: 4px; }
 .where-type input { border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 36px 8px 14px; font-size: 14px; width: min(260px, 100%); color: var(--ink); background: none; outline: none; }
 .where-type input:focus { border-color: var(--gold); }
-.where-type::after { content: ""; position: absolute; left: min(260px, 100%); top: 17px; margin-left: -24px; width: 6px; height: 6px; border-right: 1px solid var(--faint); border-bottom: 1px solid var(--faint); transform: rotate(45deg); pointer-events: none; }
+.where-type:not(.num)::after { content: ""; position: absolute; left: min(260px, 100%); top: 17px; margin-left: -24px; width: 6px; height: 6px; border-right: 1px solid var(--faint); border-bottom: 1px solid var(--faint); transform: rotate(45deg); pointer-events: none; }
 .city-list { list-style: none; margin: 8px 0 0; padding: 6px; position: absolute; z-index: 5; left: 0; width: min(280px, 100%); max-height: 260px; overflow: auto; background: #0b0a07; border: 1px solid var(--line-2); border-radius: 14px; display: grid; gap: 2px; }
 .city-list li { border: 0; border-radius: 8px; padding: 7px 10px; display: flex; justify-content: space-between; gap: 10px; color: var(--ink); }
 .city-list li:hover, .city-list li.sel { background: rgba(243,217,122,0.10); color: var(--gold-hi); }

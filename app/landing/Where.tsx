@@ -71,30 +71,8 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
       pick(p);
     }, () => setNote("Location was blocked. Type a city."), { timeout: 8000 });
   };
-  // The default: a coarse guess from the network address, only when nothing was ever chosen.
-  // A saved choice, a click or a typed city always wins, and a guess is labelled as one.
-  useEffect(() => {
-    const saved = readPlace();
-    // a guess made before the node index arrived has no node yet; once it arrives, finish it locally
-    if (saved && saved.guessed && ix && saved.nodeId == null && saved.at && inTexas(saved.at[0], saved.at[1])) { const n = nearest(ix.nodes, saved.at[0], saved.at[1]); const p = { ...saved, nodeId: n.id, nodeName: n.name }; savePlace(p); onChange(p); return; }
-    if (saved) return;
-    const ctrl = new AbortController();
-    // the hosting edge's guess first (Vercel); on a static host, a public IP lookup (city-level, no key, no prompt)
-    const edge = fetch("/api/where/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null).catch(() => null);
-    const open = () => fetch("https://get.geojs.io/v1/ip/geo.json", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null)
-      .then(j => j && Number.isFinite(+j.latitude) && Number.isFinite(+j.longitude) ? { ok: true, lat: +j.latitude, lon: +j.longitude } : null).catch(() => null);
-    const open2 = () => fetch("https://ipapi.co/json/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null)
-      .then(j => j && Number.isFinite(+j.latitude) && Number.isFinite(+j.longitude) ? { ok: true, lat: +j.latitude, lon: +j.longitude } : null).catch(() => null);
-    edge.then(g => (g && g.ok) ? g : open()).then(g => (g && g.ok) ? g : open2()).then(g => {
-      if (ctrl.signal.aborted) return;
-      const now = readPlace();
-      if (now && !now.guessed) return;
-      // a place is always chosen on load: the guess, or Houston when the guess is outside the markets or unavailable
-      const p = (g && g.ok ? placeAt(g.lat, g.lon, true) : null) ?? { nodeId: "HB_HOUSTON", nodeName: nodeName("HB_HOUSTON"), label: "Houston", program: "CenterPoint" as Program, typed: true, guessed: true };
-      pickGuess(p);
-    }).catch(() => {});
-    return () => ctrl.abort();
-  }, [ix]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Houston is preselected until the visitor picks something else
+  useEffect(() => { if (!readPlace()) pickHub(HUBS[0]); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [openList, setOpenList] = useState(false);
   const [sel, setSel] = useState(0);
@@ -114,7 +92,8 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     <div className="where">
       <div className="where-row">
         {HUBS.map(h => <button key={h.label} type="button" className="chip" aria-pressed={!value?.typed && value?.label === h.label} onClick={() => pickHub(h)}>{h.label}</button>)}
-        <button type="button" className="chip where-geo" onClick={locate}>Use my exact location</button>
+        {value?.typed && <button type="button" className="chip" aria-pressed={true}>{value.label.replace(/^near /, "")}</button>}
+        <button type="button" className="chip where-geo" onClick={locate}>Use my location</button>
       </div>
       <div className="where-type">
         <input ref={input} value={q} onChange={e => { setQ(e.target.value); setNote(""); setSel(0); setOpenList(true); }} onFocus={() => setOpenList(true)} onBlur={() => setTimeout(() => setOpenList(false), 150)} onKeyDown={onKey}
@@ -129,7 +108,6 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
         )}
         {note && <div className="where-note">{note}</div>}
       </div>
-      {value?.typed && <div className="where-picked">{value.label}{value.guessed && <span> · guessed from your network</span>}</div>}
     </div>
   );
 }

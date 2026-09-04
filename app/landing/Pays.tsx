@@ -35,6 +35,7 @@ export default function Pays() {
   const pickTyped = () => { const v = Math.round(Number(typed)); if (v > 0 && v <= 5000) { setSize(v); } };
   const flex = size == null ? 0 : Math.round(size * SHARE);
   const pr = PROGRAMS[place?.program ?? "ERCOT"];
+  const market = place?.program === "LADWP" ? "LADWP" : place?.program === "CAISO" ? "CAISO" : "ERCOT";
 
   return (
     <section ref={sec} className={`pays${on ? " on" : ""}${place ? " placed" : ""}${size != null ? " sized" : ""}`}>
@@ -50,16 +51,16 @@ export default function Pays() {
         <div className="where-row">
           {SIZES.map(v => <button key={v} type="button" className="chip" aria-pressed={size === v} onClick={() => { setSize(v); setTyped(""); }}>{v} MW</button>)}
         </div>
-        <div className="where-type">
+        <div className="where-type num">
           <input inputMode="numeric" value={typed} onChange={e => setTyped(e.target.value.replace(/[^\d]/g, ""))} placeholder="or type the megawatts" aria-label="Site size in megawatts"
             onKeyDown={e => { if (e.key === "Enter") pickTyped(); }} onBlur={pickTyped} />
         </div>
       </div>
 
       <div className="pays-step pays-answer">
-        <div className="pays-flex"><b>{shown} MW</b> could step aside</div>
+        <div className="pays-flex"><b>{shown} MW</b> flexible</div>
         {pr.priced && pr.a ? (() => { const A = applied(pr.a, flex); return (<>
-          <div className="pays-total"><b>{A.text}</b><span>{A.after}</span></div>
+          <div className="pays-total"><b>{A.text}</b><span>{A.after} from {market}</span></div>
         </>); })() : <div className="pays-total"><b>Not priced yet</b></div>}
         <div className="pays-links">
           <Link href={`/estimate/?program=${encodeURIComponent(place?.program ?? "ERCOT")}&mw=${size ?? ""}&place=${encodeURIComponent(place?.label ?? "")}`} className="pays-link dim">How this is calculated</Link>

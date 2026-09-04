@@ -35,13 +35,13 @@ function Mark({ n, at, dy, delay, gold }: { n: number; at: readonly [number, num
 }
 
 export const CHAPTERS = [
-  { n: 1, name: "Switchyard", spec: "138 kV · 2 × 60 MVA", we: "We watch the node hours ahead." },
-  { n: 2, name: "Meter & switchgear", spec: "96 to 56 MW", we: "We hold the number the grid sees.", gold: true },
-  { n: 3, name: "Firm hall", spec: "56 MW · always on", we: "Never touched." },
-  { n: 4, name: "Flexible hall", spec: "40 MW · separable", we: "Steps aside for the few hours.", gold: true },
-  { n: 5, name: "Cooling", spec: "chiller plant N+1", we: "Pre-cools 20 min ahead, coasts 25." },
-  { n: 6, name: "Backup generation", spec: "4 × 3 MW", we: "Starts in 10 min, covers what cannot stop." },
-  { n: 7, name: "Battery", spec: "20 MWh", we: "Two hours at 10 MW, into the price.", gold: true },
+  { n: 1, name: "Switchyard", spec: "138 kV · 2 × 60 MVA", we: "Prices, weather and reserves, watched hours ahead." },
+  { n: 2, name: "Meter & switchgear", spec: "96 to 56 MW", we: "The number the grid sees, held to the megawatt.", gold: true },
+  { n: 3, name: "Firm hall", spec: "56 MW · always on", we: "Untouched. Every deadline kept." },
+  { n: 4, name: "Flexible hall", spec: "40 MW · separable", we: "Solved per event: which racks, how deep, how long. Most income, no missed deadline.", gold: true },
+  { n: 5, name: "Cooling", spec: "chiller plant N+1", we: "Pre-cooled to the minute, so the halls coast instead of stopping." },
+  { n: 6, name: "Backup generation", spec: "4 × 3 MW", we: "Started only when cheaper than the revenue it saves." },
+  { n: 7, name: "Battery", spec: "20 MWh", we: "Charged on cheap hours, dispatched where the price peaks.", gold: true },
 ];
 export const STEPS = CHAPTERS.length + 1; // slab first, then seven decisions
 
@@ -72,7 +72,6 @@ export default function Campus({ p }: { p: number }) {
           </>) : (<>
             <div className="chapter-n">{done ? "7 / 7" : "0 / 7"}</div>
             <div className="chapter-name">{done ? "The whole campus" : "A parcel and a slab"}</div>
-            {done && <div className="chapter-we">One event, one plan: 56 MW at the meter.</div>}
           </>)}
         </div>
         <ol className="legend">
