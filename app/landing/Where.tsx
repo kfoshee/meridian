@@ -9,7 +9,7 @@ import { PROGRAMS, type Program } from "./programs";
 // the page names as a guess and lets them change. The answer is a market program (what pays for
 // flexibility there) and, in ERCOT, a node in the model.
 export { PROGRAMS, type Program };
-export type Place = { nodeId: string | null; nodeName: string; label: string; program: Program; typed?: boolean; guessed?: boolean };
+export type Place = { nodeId: string | null; nodeName: string; label: string; program: Program; typed?: boolean; guessed?: boolean; at?: [number, number] };
 
 const HUBS: { id: string | null; label: string; program: Program }[] = [
   { id: "HB_HOUSTON", label: "Houston", program: "CenterPoint" },
@@ -59,7 +59,7 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     const c = CITIES.filter(x => x[3]).reduce((b, x) => dist(lat, lon, x[1], x[2]) < dist(lat, lon, b[1], b[2]) ? x : b, CITIES[0]);
     const program: Program = inLA ? "LADWP" : inCal ? "CAISO" : (c[3] as Program);
     const n = ix && inTexas(lat, lon) ? nearest(ix.nodes, lat, lon) : null;
-    return { nodeId: n?.id ?? null, nodeName: n?.name ?? `near ${c[0]}`, label: `near ${c[0]}`, program, typed: true, guessed };
+    return { nodeId: n?.id ?? null, nodeName: n?.name ?? `near ${c[0]}`, label: `near ${c[0]}`, program, typed: true, guessed, at: [lat, lon] };
   };
   const pickGuess = (p: Place) => { savePlace(p); setQ(""); setNote(""); onChange(p); };
   const locate = () => {
@@ -75,9 +75,9 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
   // A saved choice, a click or a typed city always wins, and a guess is labelled as one.
   useEffect(() => {
     const saved = readPlace();
-    // a guess made before the node index arrived has no node yet; once it arrives, guess again
-    // so the model link lands on the nearest node -- the label and the program do not change
-    if (saved && !(saved.guessed && ix && saved.nodeId == null)) return;
+    // a guess made before the node index arrived has no node yet; once it arrives, finish it locally
+    if (saved && saved.guessed && ix && saved.nodeId == null && saved.at && inTexas(saved.at[0], saved.at[1])) { const n = nearest(ix.nodes, saved.at[0], saved.at[1]); const p = { ...saved, nodeId: n.id, nodeName: n.name }; savePlace(p); onChange(p); return; }
+    if (saved) return;
     const ctrl = new AbortController();
     // the hosting edge's guess first (Vercel); on a static host, a public IP lookup (city-level, no key, no prompt)
     const edge = fetch("/api/where/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -86,6 +86,7 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     const open2 = () => fetch("https://ipapi.co/json/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null)
       .then(j => j && Number.isFinite(+j.latitude) && Number.isFinite(+j.longitude) ? { ok: true, lat: +j.latitude, lon: +j.longitude } : null).catch(() => null);
     edge.then(g => (g && g.ok) ? g : open()).then(g => (g && g.ok) ? g : open2()).then(g => {
+      if (ctrl.signal.aborted) return;
       const now = readPlace();
       if (now && !now.guessed) return;
       // a place is always chosen on load: the guess, or Houston when the guess is outside the markets or unavailable
@@ -95,8 +96,20 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     return () => ctrl.abort();
   }, [ix]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sugg = q.trim().length >= 2 ? CITIES.filter(c => c[0].toLowerCase().startsWith(q.trim().toLowerCase())).slice(0, 4) : [];
-
+  const [openList, setOpenList] = useState(false);
+  const [sel, setSel] = useState(0);
+  const query = q.trim().toLowerCase();
+  const rows = CITIES.filter(c => !query || c[0].toLowerCase().startsWith(query) || c[0].toLowerCase().includes(" " + query));
+  const tx = rows.filter(c => c[2] > -107 && c[1] < 37 && c[2] > -106.7 || (c[3] && c[3] !== "LADWP" && c[3] !== "CAISO")), ca = rows.filter(c => c[3] === "LADWP" || c[3] === "CAISO"), out = rows.filter(c => !c[3]);
+  const ordered: (City | string)[] = [...(tx.length ? ["Texas", ...tx] : []), ...(ca.length ? ["California", ...ca] : []), ...(out.length ? ["Outside the markets", ...out] : [])];
+  const pickable = ordered.filter((r): r is City => typeof r !== "string" && !!r[3]);
+  const choose = (c: City) => { pickCity(c); setOpenList(false); };
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); setOpenList(true); setSel(v => Math.min(pickable.length - 1, v + 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setSel(v => Math.max(0, v - 1)); }
+    else if (e.key === "Enter") { e.preventDefault(); if (pickable[sel]) choose(pickable[sel]); }
+    else if (e.key === "Escape") setOpenList(false);
+  };
   return (
     <div className="where">
       <div className="where-row">
@@ -104,10 +117,16 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
         <button type="button" className="chip where-geo" onClick={locate}>Use my exact location</button>
       </div>
       <div className="where-type">
-        <input ref={input} value={q} onChange={e => { setQ(e.target.value); setNote(""); }} placeholder="or type a city" aria-label="City"
-          onKeyDown={e => { if (e.key === "Enter" && sugg[0]) pickCity(sugg[0]); }} />
-        {sugg.length > 0 && <div className="where-sug">{sugg.map(c => <button key={c[0]} type="button" className="chip" onClick={() => pickCity(c)}>{c[0]}</button>)}</div>}
-        {q.trim().length >= 2 && sugg.length === 0 && <div className="where-note">Not a city we know yet. Pick a place above.</div>}
+        <input ref={input} value={q} onChange={e => { setQ(e.target.value); setNote(""); setSel(0); setOpenList(true); }} onFocus={() => setOpenList(true)} onBlur={() => setTimeout(() => setOpenList(false), 150)} onKeyDown={onKey}
+          placeholder="or type a city" aria-label="City" role="combobox" aria-expanded={openList} aria-autocomplete="list" />
+        {openList && ordered.length > 0 && (
+          <ul className="city-list" role="listbox">
+            {ordered.map((r, i) => typeof r === "string" ? <li key={`h${i}`} className="hd" role="presentation">{r}</li> : (
+              <li key={r[0]} role="option" aria-selected={pickable[sel] === r} className={`${pickable[sel] === r ? "sel" : ""}${r[3] ? "" : " out"}`} onMouseDown={e => { e.preventDefault(); if (r[3]) choose(r); }}>
+                {r[0]}<span>{r[3] ? (r[3] === "ERCOT" ? "ERCOT" : r[3]) : "outside ERCOT and CAISO"}</span>
+              </li>))}
+          </ul>
+        )}
         {note && <div className="where-note">{note}</div>}
       </div>
       {value?.typed && <div className="where-picked">{value.label}{value.guessed && <span> · guessed from your network</span>}</div>}

@@ -324,8 +324,8 @@
 @media (max-width: 640px) { .campus-side { grid-template-columns: 1fr; } .legend { display: none; } .draft-scene { justify-content: flex-start; padding-top: 10vh; } }
 
 /* the design section is a scroll-driven scene: tall track, pinned stage */
-.draft { min-height: 100svh; display: block; padding: 0; background: #000; position: relative; }
-.draft-scene { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: 3vh; padding: 6vh 6vw; overflow: hidden; }
+.draft { height: calc(100svh * 9.5) !important; min-height: 0 !important; display: block !important; padding: 0 !important; background: #000; position: relative; overflow: visible !important; }
+.draft-scene { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: 3vh; padding: 6vh 6vw; overflow: hidden; }
 
 /* the model as a part: an isometric compute die, signals in, answers out */
 .die-wrap { width: min(1200px, 96vw); margin-top: -8px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -537,18 +537,23 @@
 @media (max-width: 640px) { .plan-figs { gap: 14px; } }
 @media (prefers-reduced-motion: reduce) { .plan-head, .plan-bar { animation: none !important; } .plan-bar { opacity: 0.9 !important; } }
 
-/* the scan */
-.meter-fig b { display: block; color: var(--gold-hi); font-weight: 200; font-size: clamp(44px, 4.6vw, 72px); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.meter-fig span { display: block; margin-top: 10px; color: var(--muted); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; }
-.campus.on [data-part] .iso { opacity: 1; transform: none; }
-.scan-band { fill: url(#scan-grad); opacity: 0; }
-.tag text { fill: var(--gold-hi); font-size: 11px; font-weight: 500; letter-spacing: 0.04em; font-family: var(--font-ui), system-ui, sans-serif; opacity: 0; }
-.campus.scan:not([data-hot]) .scan-band { animation: scan-x 9s linear 1600ms infinite; }
-@keyframes scan-x { 0% { transform: translateX(0); opacity: 0; } 4% { opacity: 1; } 88% { opacity: 1; transform: translateX(834px); } 92%, 100% { opacity: 0; transform: translateX(834px); } }
-.campus.scan:not([data-hot]) .tag text { animation: tag-pop 9s linear infinite; animation-delay: calc(1600ms + 9s * 0.88 * var(--f)); }
-@keyframes tag-pop { 0% { opacity: 0; transform: translateY(4px); } 3% { opacity: 1; transform: none; } 96% { opacity: 1; } 100% { opacity: 0; } }
-.campus.scan:not([data-hot]) [data-part] .iso { animation: part-pop 9s linear infinite; animation-delay: calc(1600ms + 9s * 0.88 * var(--f, 0.5)); }
-@keyframes part-pop { 0% { filter: brightness(1); } 2% { filter: brightness(2.2); } 10%, 100% { filter: brightness(1); } }
-.campus[data-hot] .tag text { opacity: 0; } .campus[data-hot] .tag[data-tag="1"] text, .campus[data-hot="1"] .tag[data-tag="1"] text { opacity: 0; }
-.campus[data-hot="1"] .tag[data-tag="1"] text, .campus[data-hot="2"] .tag[data-tag="2"] text, .campus[data-hot="3"] .tag[data-tag="3"] text, .campus[data-hot="4"] .tag[data-tag="4"] text, .campus[data-hot="5"] .tag[data-tag="5"] text, .campus[data-hot="6"] .tag[data-tag="6"] text, .campus[data-hot="7"] .tag[data-tag="7"] text { opacity: 1 !important; }
-@media (prefers-reduced-motion: reduce) { .scan-band { animation: none !important; opacity: 0; } .tag text { animation: none !important; opacity: 1 !important; } [data-part] .iso { animation: none !important; } }
+html { overflow-anchor: none; } /* the campus track folds itself; the browser must not re-anchor on top of that */
+.draft.built { height: 100svh !important; }
+.draft.built .draft-scene { position: relative; }
+
+/* pills: the places and the sizes */
+.where-row { gap: 8px 8px; }
+.where-row .chip, .where-sug .chip, .city-list li { border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 14px; font-size: 14px; color: var(--muted); background: none; cursor: pointer; font-family: inherit; transition: border-color 200ms var(--ease), color 200ms var(--ease), background 200ms var(--ease); }
+.where-row .chip:hover, .where-sug .chip:hover { border-color: var(--gold-lo); color: var(--ink); }
+.where-row .chip[aria-pressed="true"] { background: rgba(243,217,122,0.12); border-color: var(--gold); color: var(--gold-hi); }
+.where-geo { color: var(--faint); }
+.where-type { position: relative; margin-top: 4px; }
+.where-type input { border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 36px 8px 14px; font-size: 14px; width: min(260px, 100%); color: var(--ink); background: none; outline: none; }
+.where-type input:focus { border-color: var(--gold); }
+.where-type::after { content: ""; position: absolute; left: min(260px, 100%); top: 17px; margin-left: -24px; width: 6px; height: 6px; border-right: 1px solid var(--faint); border-bottom: 1px solid var(--faint); transform: rotate(45deg); pointer-events: none; }
+.city-list { list-style: none; margin: 8px 0 0; padding: 6px; position: absolute; z-index: 5; left: 0; width: min(280px, 100%); max-height: 260px; overflow: auto; background: #0b0a07; border: 1px solid var(--line-2); border-radius: 14px; display: grid; gap: 2px; }
+.city-list li { border: 0; border-radius: 8px; padding: 7px 10px; display: flex; justify-content: space-between; gap: 10px; color: var(--ink); }
+.city-list li:hover, .city-list li.sel { background: rgba(243,217,122,0.10); color: var(--gold-hi); }
+.city-list li.out { color: var(--faint); } .city-list li.out:hover { color: var(--faint); background: none; cursor: default; }
+.city-list li span { color: var(--faint); font-size: 11px; letter-spacing: 0.04em; }
+.city-list .hd { color: var(--faint); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; padding: 8px 10px 4px; }

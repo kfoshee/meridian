@@ -34,33 +34,57 @@ function Mark({ n, at, dy, delay, gold }: { n: number; at: readonly [number, num
   );
 }
 
-// what each part does in the event, as a number the scan reveals
-const TAGS: Record<number, string> = { 1: "138 kV", 2: "96 to 56", 3: "56 keep", 4: "\u221240", 5: "coast", 6: "+12", 7: "+10" };
-const TAG_AT: Record<number, { x: number; y: number }> = {};
-export default function Campus({ on }: { on: boolean }) {
+export const CHAPTERS = [
+  { n: 1, name: "Switchyard", spec: "138 kV · 2 × 60 MVA", we: "We watch the node hours ahead." },
+  { n: 2, name: "Meter & switchgear", spec: "96 to 56 MW", we: "We hold the number the grid sees.", gold: true },
+  { n: 3, name: "Firm hall", spec: "56 MW · always on", we: "Never touched." },
+  { n: 4, name: "Flexible hall", spec: "40 MW · separable", we: "Steps aside for the few hours.", gold: true },
+  { n: 5, name: "Cooling", spec: "chiller plant N+1", we: "Pre-cools 20 min ahead, coasts 25." },
+  { n: 6, name: "Backup generation", spec: "4 × 3 MW", we: "Starts in 10 min, covers what cannot stop." },
+  { n: 7, name: "Battery", spec: "20 MWh", we: "Two hours at 10 MW, into the price.", gold: true },
+];
+export const STEPS = CHAPTERS.length + 1; // slab first, then seven decisions
+
+// p ∈ [0,1] is the section's scroll progress; chapter 0 = the slab, 1..7 = the decisions, 8 = complete
+export default function Campus({ p }: { p: number }) {
   const [hover, setHover] = useState<number | null>(null);
-  const active = hover;
-  const built = () => on;
+  const chapter = Math.min(STEPS, Math.floor(p * (STEPS + 0.999)));
+  const done = chapter >= STEPS;
+  const active = done ? hover : chapter >= 1 ? chapter : null;
+  const built = (n: number) => chapter >= n;
+
   const feed = [P(-96, 62, 1), P(-56, 62, 1), P(-56, 48, 1), P(-30, 48, 1), P(-30, 40, 1), P(6, 40, 1)];
   const trayFirm = [P(6, 40, 3), P(30, 40, 3), P(30, 70, 3)];
   const trayFlex = [P(6, 40, 3), P(14, 40, 3), P(14, 128, 3), P(176, 128, 3), P(176, 118, 3)];
   const pipe = (y: number) => [P(190, y, 33), P(150, y, 33), P(150, y, 4), P(126, y, 4)];
-  const ANCH: Record<number, readonly [number, number]> = { 1: P(-33, 44, 12), 2: P(7, 36, 8), 3: P(84, 64, 32), 4: P(191, 64, 32), 5: P(122, 129, 16), 6: P(80, -4, 8), 7: P(195, 125, 8) };
-  const fx = (n: number) => ((ANCH[n][0] - 170) / 860).toFixed(3);
-  const part = (n: number) => ({ "data-part": n, className: `${built() ? "on" : ""}${active === n ? " hot" : ""}`, style: { "--f": fx(n) } as React.CSSProperties, onMouseEnter: () => on && setHover(n), onMouseLeave: () => setHover(null) });
-  const tag = (n: number, at: readonly [number, number], dy: number) => (
-    <g className="tag" data-tag={n} style={{ "--f": ((at[0] - 170) / 860).toFixed(3) } as React.CSSProperties}>
-      <text x={at[0] + 14} y={at[1] + dy + 3.5}>{TAGS[n]}</text>
-    </g>
-  );
+  const part = (n: number) => ({ "data-part": n, className: `${built(n) ? "on" : ""}${active === n ? " hot" : ""}`, onMouseEnter: () => done && setHover(n), onMouseLeave: () => setHover(null) });
+  const cur = CHAPTERS[Math.min(6, Math.max(0, (active ?? 1) - 1))];
+
   return (
-    <div className={`campus${on ? " on scan" : ""}`} data-hot={active ?? undefined}>
+    <div className={`campus on${chapter >= 1 ? " started" : ""}${done ? " done" : ""}`} data-hot={active ?? undefined}>
       <div className="campus-side">
-        <div className="meter-fig"><b>56 MW</b><span>at the meter, from 96</span></div>
+        <div className="chapter" key={active ?? "none"}>
+          {active ? (<>
+            <div className="chapter-n">{active} <span>/ 7</span></div>
+            <div className={`chapter-name${cur.gold ? " gold" : ""}`}>{cur.name}</div>
+            <div className="chapter-spec">{cur.spec}</div>
+            <div className="chapter-we">{cur.we}</div>
+          </>) : (<>
+            <div className="chapter-n">{done ? "7 / 7" : "0 / 7"}</div>
+            <div className="chapter-name">{done ? "The whole campus" : "A parcel and a slab"}</div>
+            {done && <div className="chapter-we">One event, one plan: 56 MW at the meter.</div>}
+          </>)}
+        </div>
+        <ol className="legend">
+          {CHAPTERS.map(l => (
+            <li key={l.n} className={`${l.gold ? "gold" : ""}${built(l.n) ? " built" : ""}${active === l.n ? " hot" : ""}`} onMouseEnter={() => done && setHover(l.n)} onMouseLeave={() => setHover(null)}>
+              <i>{l.n}</i><div><b>{l.name}</b></div>
+            </li>
+          ))}
+        </ol>
       </div>
 
       <svg viewBox="170 -4 860 504" className="campus-svg" aria-hidden="true">
-        <defs><linearGradient id="scan-grad" x1="0" x2="1"><stop offset="0" stopColor="#fff6dc" stopOpacity="0" /><stop offset="0.5" stopColor="#fff6dc" stopOpacity="0.28" /><stop offset="1" stopColor="#fff6dc" stopOpacity="0" /></linearGradient></defs>
         <g data-part={0} className="on"><Box x={0} y={0} w={250} d={132} h={2} tone="dim" delay={0} /></g>
 
         {/* 1 · switchyard */}
@@ -138,11 +162,6 @@ export default function Campus({ on }: { on: boolean }) {
           {Array.from({ length: 3 }, (_, i) => <Box key={`iv${i}`} x={158 + i * 26} y={131} z={2} w={6} d={3} h={3} tone="dim" delay={1000 + i * 140} />)}
           <Mark n={7} at={P(195, 125, 8)} dy={-16} delay={1400} gold />
         </g>
-        {/* the scan: a band of light crosses the campus; each part shows its number as the band passes */}
-        <g className="tags">
-          {tag(1, P(-33, 44, 12), -22)}{tag(2, P(7, 36, 8), -20)}{tag(3, P(84, 64, 32), 0)}{tag(4, P(191, 64, 32), 0)}{tag(5, P(122, 129, 16), 0)}{tag(6, P(80, -4, 8), -16)}{tag(7, P(195, 125, 8), -16)}
-        </g>
-        <rect className="scan-band" x={170} y={-4} width={26} height={504} />
       </svg>
     </div>
   );

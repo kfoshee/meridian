@@ -13,7 +13,7 @@ export default function Pays() {
   const sec = useRef<HTMLElement>(null);
   const [on, setOn] = useState(false);
   const [place, setPlace] = useState<Place | null>(null);
-  const [size, setSize] = useState<number | null>(null);
+  const [size, setSize] = useState<number | null>(100);
   const [typed, setTyped] = useState("");
   const [shown, setShown] = useState(0);   // the flexible MW, counted up
 
