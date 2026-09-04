@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Campus, { STEPS } from "./Campus";
-import Commit from "./Commit";
 
-// One product, then its parts: Commitment (the number to file) and Design (the campus, run against the grid).
+// The campus, built one decision at a time as you scroll, then run against the grid.
 export default function Four() {
   const ref = useRef<HTMLElement>(null);
   const draftRef = useRef<HTMLElement>(null);
@@ -33,14 +32,6 @@ export default function Four() {
 
   return (
     <section ref={ref} className="steps">
-      {/* 2 · Commitment */}
-      <article className={`commit${on[0] ? " on" : ""}`} data-io>
-        <div className="commit-in">
-          <h2>The number to file.</h2>
-          <Commit on={on[0]} />
-        </div>
-      </article>
-
       {/* 3 · Design: the campus, built one decision at a time as you scroll */}
       <article ref={draftRef} className="draft" data-io>
         <div className="draft-scene">
