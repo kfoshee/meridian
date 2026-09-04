@@ -36,7 +36,7 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
   useEffect(() => { if (!on) return; const t = setTimeout(() => setSettled(true), 2300); return () => clearTimeout(t); }, [on]);
   useEffect(() => { const m = matchMedia("(max-width: 640px)"); const f = () => setNarrow(m.matches); f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
   const geo = useMemo(() => {
-    const inEnd = narrow ? 290 : 90, outEnd = narrow ? 950 : 1010;
+    const inEnd = narrow ? 320 : 90, outEnd = narrow ? 905 : 1010;
     // pins on all four edges of the substrate
     const pins: { x: number; y: number; w: number; d: number }[] = [];
     for (let i = 0; i < PIN_N; i++) {
