@@ -181,8 +181,13 @@ export default function Landing() {
     <Contact />
     <footer ref={foot} className={`foot${footIn ? " in" : ""}`} aria-label="Meridian">
       <div className="foot-lockup">
-        <div className="foot-logo-wrap" onPointerMove={e => { const r = e.currentTarget.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5; e.currentTarget.style.setProperty("--ry", `${(x * 26).toFixed(1)}deg`); e.currentTarget.style.setProperty("--rx", `${(-y * 22).toFixed(1)}deg`); }} onPointerLeave={e => { e.currentTarget.style.setProperty("--ry", "0deg"); e.currentTarget.style.setProperty("--rx", "0deg"); }}>
-          <img className="foot-logo" src="/media/meridian-mark-20.webp" alt="" width={896} height={793} decoding="async" />
+        <div className="foot-logo-wrap" onPointerMove={e => { const r = e.currentTarget.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5; const st = e.currentTarget.style; st.setProperty("--ry", `${(x * 28).toFixed(1)}deg`); st.setProperty("--rx", `${(-y * 24).toFixed(1)}deg`); st.setProperty("--mx", `${((x + 0.5) * 100).toFixed(1)}%`); st.setProperty("--my", `${((y + 0.5) * 100).toFixed(1)}%`); }} onPointerLeave={e => { const st = e.currentTarget.style; st.setProperty("--ry", "0deg"); st.setProperty("--rx", "0deg"); st.setProperty("--mx", "50%"); st.setProperty("--my", "30%"); }}>
+          <div className="foot-logo-3d">
+            {[5, 4, 3, 2, 1].map(k => <img key={k} className="foot-logo-depth" src="/media/meridian-mark-20.webp" alt="" width={896} height={793} decoding="async" style={{ transform: `translateZ(${-k * 3}px)` }} />)}
+            <img className="foot-logo" src="/media/meridian-mark-20.webp" alt="" width={896} height={793} decoding="async" />
+            <div className="foot-sheen" />
+          </div>
+          <div className="foot-shadow" />
         </div>
         <span className="foot-name">Meridian</span>
         <span className="foot-tagline">Power for AI data centers.</span>

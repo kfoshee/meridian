@@ -113,8 +113,15 @@
 .foot { background: #000; min-height: 46vh; padding: 10vh 7vw 9vh; display: grid; place-items: center; overflow: hidden; }
 .foot-lockup { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
 .foot-lockup { cursor: default; }
-.foot-logo-wrap { width: clamp(160px, 15vw, 210px); animation: foot-float 7s ease-in-out infinite; perspective: 700px; --rx: 0deg; --ry: 0deg; }
-.foot-logo { display: block; width: 100%; height: auto; user-select: none; transform: rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1); transform-style: preserve-3d; will-change: transform; }
+.foot-logo-wrap { position: relative; width: clamp(160px, 15vw, 210px); animation: foot-float 7s ease-in-out infinite; perspective: 600px; --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 30%; }
+.foot-logo-3d { position: relative; transform-style: preserve-3d; transform: rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
+.foot-logo { display: block; width: 100%; height: auto; user-select: none; position: relative; transform: translateZ(0); }
+.foot-logo-depth { position: absolute; inset: 0; width: 100%; height: auto; user-select: none; filter: brightness(0.32) saturate(0.8); }
+.foot-sheen { position: absolute; inset: 0; transform: translateZ(1px); pointer-events: none; mix-blend-mode: screen; opacity: 0;
+  background: radial-gradient(circle 34% at var(--mx) var(--my), rgba(255,246,214,0.55), rgba(255,246,214,0.12) 45%, transparent 70%);
+  -webkit-mask-image: url(/media/meridian-mark-20.webp); mask-image: url(/media/meridian-mark-20.webp); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; transition: opacity 300ms var(--ease); }
+.foot-lockup:hover .foot-sheen { opacity: 1; }
+.foot-shadow { position: absolute; left: 12%; right: 12%; bottom: -14%; height: 12%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,0,0,0.9), transparent 70%); filter: blur(6px); opacity: 0.6; transform: translate(calc(var(--ry) * -0.6px / 1deg), calc(var(--rx) * 0.4px / 1deg)); transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .foot-lockup:hover .foot-logo-wrap { animation-play-state: paused; }
 .foot-lockup:hover .foot-name { color: var(--gold-hi); }
 .foot-name, .foot-tagline { transition: color 400ms var(--ease); }
@@ -127,7 +134,7 @@
   .foot-name { font-size: 20px; }
   .foot-tagline { font-size: 9px; letter-spacing: 0.14em; }
 }
-@media (prefers-reduced-motion: reduce) { .foot-logo-wrap { animation: none; } .foot-logo { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .foot-logo-wrap { animation: none; } .foot-logo-3d, .foot-shadow { transition: none; } }
 
 /* the gallery's card geometry, kept in sync with cardFor() */
 .hero { --card-w: min(62vw, 980px); --card-h: calc(min(62vw, 980px) * 9 / 16); --card-gap: 8vw; }
