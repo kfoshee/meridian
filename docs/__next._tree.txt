@@ -3,4 +3,4 @@
 :HL["/_next/static/css/e3426ab7fa7901fa.css","style"]
 :HL["/_next/static/css/06d019d307a2551c.css","style"]
 :HL["/_next/static/css/5bfb2c7c5aefa8dd.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}},"staleTime":300,"buildId":"UlQv7FvuSlH5iuH4PrFzZ"}
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}},"staleTime":300,"buildId":"tiFSntcQEUpYdL3LTJ2Xm"}
