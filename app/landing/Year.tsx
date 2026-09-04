@@ -38,7 +38,7 @@ const Year = forwardRef<YearHandle, { photo: HTMLImageElement | null }>(function
       const split = ease(clamp((yp - 0.08) / 0.16));
       const settle = ease(clamp((yp - 0.22) / 0.14));
       const ripple = easeC(clamp((yp - 0.30) / 0.42));
-      const dissolve = easeC(clamp((yp - 0.58) / 0.32));
+      const dissolve = easeC(clamp((yp - 0.58) / 0.38));
       const close = dissolve;
       if (enter <= 0 || shrink >= 1) return;                      // before the year begins, or after the gallery has taken over
 

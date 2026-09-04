@@ -1,7 +1,7 @@
 @property --gx { syntax: "<percentage>"; inherits: true; initial-value: 75%; }
 @property --gy { syntax: "<percentage>"; inherits: true; initial-value: 70%; }
 /* Meridian hero v3. Flat grid, vignetted, marked intersections, breathing cells, a sun that climbs the meridian. All from --p, --peak, --sy. */
-.hero { position: relative; height: 500vh; height: 500svh; --card-w: 62vw; --card-h: calc(62vw * 9 / 16); --card-gap: 8vw; --mx: -999px; --my: -999px; --hover: 0; --set: 0; --p: 0; --peak: 0; --sy: 50; --out: 0; --gx: 75%; --gy: 70%; --cell: 80px; --ox: 0px; }
+.hero { position: relative; height: 470vh; height: 470svh; --card-w: 62vw; --card-h: calc(62vw * 9 / 16); --card-gap: 8vw; --mx: -999px; --my: -999px; --hover: 0; --set: 0; --p: 0; --peak: 0; --sy: 50; --out: 0; --gx: 75%; --gy: 70%; --cell: 80px; --ox: 0px; }
 .hero-scene { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #000; isolation: isolate; }
 /* exit: the grid, cells, meridian and light dissolve over the last stretch of the scroll */
 .hero-fade { opacity: calc(1 - var(--out)); }
