@@ -463,8 +463,8 @@
 @media (max-width: 640px) { .pays-legend { gap: 18px 28px; } }
 
 /* where is the site */
-.where { display: grid; gap: 14px; }
-.where-row { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.where { display: grid; gap: 10px; }
+.where-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .where-row .chip { background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer; font-family: inherit; }
 .where-geo { color: var(--faint); }
 .where-type input { background: none; border: 0; border-bottom: 1px solid var(--line-2); color: var(--ink); font: inherit; font-size: 15px; padding: 8px 0; width: min(280px, 100%); outline: none; }
@@ -547,10 +547,10 @@ html { overflow-anchor: none; } /* the campus track folds itself; the browser mu
 .where-row .chip:hover, .where-sug .chip:hover { border-color: var(--gold-lo); color: var(--ink); }
 .where-row .chip[aria-pressed="true"] { background: rgba(243,217,122,0.12); border-color: var(--gold); color: var(--gold-hi); }
 .where-geo { color: var(--faint); }
-.where-type { position: relative; margin-top: 4px; }
-.where-type input { border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 36px 8px 14px; font-size: 14px; width: min(260px, 100%); color: var(--ink); background: none; outline: none; }
+.where-type { position: relative; }
+.where-type input { border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 34px 7px 14px; font-size: 14px; width: 200px; max-width: 100%; color: var(--ink); background: none; outline: none; }
 .where-type input:focus { border-color: var(--gold); }
-.where-type:not(.num)::after { content: ""; position: absolute; left: min(260px, 100%); top: 17px; margin-left: -24px; width: 6px; height: 6px; border-right: 1px solid var(--faint); border-bottom: 1px solid var(--faint); transform: rotate(45deg); pointer-events: none; }
+.where-type:not(.num)::after { content: ""; position: absolute; right: 16px; top: 15px; width: 6px; height: 6px; border-right: 1px solid var(--faint); border-bottom: 1px solid var(--faint); transform: rotate(45deg); pointer-events: none; }
 .city-list { list-style: none; margin: 8px 0 0; padding: 6px; position: absolute; z-index: 5; left: 0; width: min(280px, 100%); max-height: 260px; overflow: auto; background: #0b0a07; border: 1px solid var(--line-2); border-radius: 14px; display: grid; gap: 2px; }
 .city-list li { border: 0; border-radius: 8px; padding: 7px 10px; display: flex; justify-content: space-between; gap: 10px; color: var(--ink); }
 .city-list li:hover, .city-list li.sel { background: rgba(243,217,122,0.10); color: var(--gold-hi); }
@@ -559,3 +559,6 @@ html { overflow-anchor: none; } /* the campus track folds itself; the browser mu
 .city-list .hd { color: var(--faint); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; padding: 8px 10px 4px; }
 
 .chapter-we.late { opacity: 0; animation: chapter-in 700ms var(--ease) 1400ms both; }
+.where-type.num input { width: 190px; padding-right: 14px; }
+.pays-step h3 { margin-bottom: 12px; }
+.pays-mw { margin-top: 26px; }

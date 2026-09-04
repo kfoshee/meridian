@@ -50,10 +50,11 @@ export default function Pays() {
         <h3>How big is the site?</h3>
         <div className="where-row">
           {SIZES.map(v => <button key={v} type="button" className="chip" aria-pressed={size === v} onClick={() => { setSize(v); setTyped(""); }}>{v} MW</button>)}
-        </div>
-        <div className="where-type num">
-          <input inputMode="numeric" value={typed} onChange={e => setTyped(e.target.value.replace(/[^\d]/g, ""))} placeholder="or type the megawatts" aria-label="Site size in megawatts"
-            onKeyDown={e => { if (e.key === "Enter") pickTyped(); }} onBlur={pickTyped} />
+          {size != null && !SIZES.includes(size) && <button type="button" className="chip" aria-pressed={true}>{size} MW</button>}
+          <div className="where-type num">
+            <input inputMode="numeric" value={typed} onChange={e => setTyped(e.target.value.replace(/[^\d]/g, ""))} placeholder="or type the megawatts" aria-label="Site size in megawatts"
+              onKeyDown={e => { if (e.key === "Enter") pickTyped(); }} onBlur={pickTyped} />
+          </div>
         </div>
       </div>
 

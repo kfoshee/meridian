@@ -72,7 +72,7 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     }, () => setNote("Location was blocked. Type a city."), { timeout: 8000 });
   };
   // Houston is preselected until the visitor picks something else
-  useEffect(() => { if (!readPlace()) pickHub(HUBS[0]); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const saved = readPlace(); if (!saved || saved.guessed) pickHub(HUBS[0]); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [openList, setOpenList] = useState(false);
   const [sel, setSel] = useState(0);
@@ -92,9 +92,7 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     <div className="where">
       <div className="where-row">
         {HUBS.map(h => <button key={h.label} type="button" className="chip" aria-pressed={!value?.typed && value?.label === h.label} onClick={() => pickHub(h)}>{h.label}</button>)}
-        {value?.typed && <button type="button" className="chip" aria-pressed={true}>{value.label.replace(/^near /, "")}</button>}
-        <button type="button" className="chip where-geo" onClick={locate}>Use my location</button>
-      </div>
+        {value?.typed && !HUBS.some(h => h.label === value.label) && <button type="button" className="chip" aria-pressed={true}>{value.label.replace(/^near /, "")}</button>}
       <div className="where-type">
         <input ref={input} value={q} onChange={e => { setQ(e.target.value); setNote(""); setSel(0); setOpenList(true); }} onFocus={() => setOpenList(true)} onBlur={() => setTimeout(() => setOpenList(false), 150)} onKeyDown={onKey}
           placeholder="or type a city" aria-label="City" role="combobox" aria-expanded={openList} aria-autocomplete="list" />
@@ -107,6 +105,8 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
           </ul>
         )}
         {note && <div className="where-note">{note}</div>}
+      </div>
+        <button type="button" className="chip where-geo" onClick={locate}>Use my location</button>
       </div>
     </div>
   );

@@ -24,7 +24,7 @@ function Slab({ x, y, z, w, d, h, tone = "" }: { x: number; y: number; z: number
 }
 
 const INPUTS = ["prices", "load", "weather", "reserves", "campus"];
-const OUTS = ["hours", "events", "this week"];
+const OUTS = ["hours stepped aside this year", "events, each seen a day ahead", "next window"];
 const SUB = 60, INT = 48, DIE = 38, CORE = 11;        // half-sizes, model units
 const Z_SUB = 9, Z_INT = 4, Z_DIE = 6, Z_CORE = 3;
 const PIN_STEP = 8, PIN_N = 14;
@@ -65,7 +65,7 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
   }, [narrow]);
 
   const wk = tally.week[0];
-  const nums = [String(tally.hours), String(tally.events), wk ? `${wk.day} ${wk.from}–${wk.to}` : "no window"];
+  const nums = [String(tally.hours), String(tally.events), wk ? `${wk.day} ${wk.from}–${wk.to}` : "none this week"];
 
   return (
     <div className={`die-wrap${on ? " on" : ""}${settled ? " settled" : ""}`} tabIndex={-1}>
