@@ -56,7 +56,7 @@ export default function Landing() {
     setOrigin();
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // The scene chases the real scroll position over a few frames (τ = 120 ms), so a wheel tick becomes a
+    // The scene chases the real scroll position over a few frames (τ = 150 ms), so a wheel tick becomes a
     // short glide instead of a jump. Scrolling itself is untouched; only what the scene shows is eased.
     let raf = 0, Ps = -1, lastT = 0;
     const update = (now: number = performance.now()) => {
@@ -64,7 +64,7 @@ export default function Landing() {
       const r = el.getBoundingClientRect();
       const Pr = reduce ? 1 : clamp(-r.top / (r.height - innerHeight));
       if (Ps < 0 || reduce) Ps = Pr;
-      else { const dt = Math.min(64, now - lastT || 16); Ps += (Pr - Ps) * (1 - Math.exp(-dt / 120)); if (Math.abs(Pr - Ps) < 0.00005) Ps = Pr; }
+      else { const dt = Math.min(64, now - lastT || 16); Ps += (Pr - Ps) * (1 - Math.exp(-dt / 150)); if (Math.abs(Pr - Ps) < 0.00005) Ps = Pr; }
       lastT = now;
       const P = Ps;
       // hero
@@ -183,7 +183,7 @@ export default function Landing() {
     <Contact />
     <footer ref={foot} className={`foot${footIn ? " in" : ""}`} aria-label="Meridian">
       <div className="foot-lockup">
-        <img className="foot-logo" src="/media/meridian-mark.webp" alt="" width={760} height={645} decoding="async" />
+        <img className="foot-logo" src="/media/meridian-mark-4.webp" alt="" width={760} height={645} decoding="async" />
         <span className="foot-name">Meridian</span>
         <span className="foot-tagline">Power for AI data centers.</span>
       </div>

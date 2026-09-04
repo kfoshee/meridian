@@ -324,8 +324,8 @@
 @media (max-width: 640px) { .campus-side { grid-template-columns: 1fr; } .legend { display: none; } .draft-scene { justify-content: flex-start; padding-top: 10vh; } }
 
 /* the design section is a scroll-driven scene: tall track, pinned stage */
-.draft { height: calc(100svh * 9.5) !important; min-height: 0 !important; display: block !important; padding: 0 !important; background: #000; position: relative; overflow: visible !important; }
-.draft-scene { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: 3vh; padding: 6vh 6vw; overflow: hidden; }
+.draft { min-height: 100svh; display: block; padding: 0; background: #000; position: relative; }
+.draft-scene { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: 3vh; padding: 6vh 6vw; overflow: hidden; }
 
 /* the model as a part: an isometric compute die, signals in, answers out */
 .die-wrap { width: min(1200px, 96vw); margin-top: -8px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -414,9 +414,6 @@
 .step .viz-outline { stroke: rgba(247,242,230,0.45); }
 @media (prefers-reduced-motion: reduce) { .site-ring { animation: none !important; } .site-name, .site-mw { opacity: 1 !important; transition: none; } }
 
-html { overflow-anchor: none; } /* the campus track folds itself; the browser must not re-anchor on top of that */
-.draft.built { height: 100svh !important; }
-.draft.built .draft-scene { position: relative; }
 
 /* flexibility pays: one slider, two ways ERCOT pays, a year's total */
 .pays { background: #000; padding: 14vh 6vw; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 28px; font-family: var(--font-ui), system-ui, sans-serif; }
@@ -539,3 +536,19 @@ html { overflow-anchor: none; } /* the campus track folds itself; the browser mu
 @keyframes plan-pre { 0%, 17% { opacity: 0.12; } 19%, 35% { opacity: 0.8; } 38%, 100% { opacity: 0.12; } }
 @media (max-width: 640px) { .plan-figs { gap: 14px; } }
 @media (prefers-reduced-motion: reduce) { .plan-head, .plan-bar { animation: none !important; } .plan-bar { opacity: 0.9 !important; } }
+
+/* the scan */
+.meter-fig b { display: block; color: var(--gold-hi); font-weight: 200; font-size: clamp(44px, 4.6vw, 72px); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.meter-fig span { display: block; margin-top: 10px; color: var(--muted); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; }
+.campus.on [data-part] .iso { opacity: 1; transform: none; }
+.scan-band { fill: url(#scan-grad); opacity: 0; }
+.tag text { fill: var(--gold-hi); font-size: 11px; font-weight: 500; letter-spacing: 0.04em; font-family: var(--font-ui), system-ui, sans-serif; opacity: 0; }
+.campus.scan:not([data-hot]) .scan-band { animation: scan-x 9s linear 1600ms infinite; }
+@keyframes scan-x { 0% { transform: translateX(0); opacity: 0; } 4% { opacity: 1; } 88% { opacity: 1; transform: translateX(834px); } 92%, 100% { opacity: 0; transform: translateX(834px); } }
+.campus.scan:not([data-hot]) .tag text { animation: tag-pop 9s linear infinite; animation-delay: calc(1600ms + 9s * 0.88 * var(--f)); }
+@keyframes tag-pop { 0% { opacity: 0; transform: translateY(4px); } 3% { opacity: 1; transform: none; } 96% { opacity: 1; } 100% { opacity: 0; } }
+.campus.scan:not([data-hot]) [data-part] .iso { animation: part-pop 9s linear infinite; animation-delay: calc(1600ms + 9s * 0.88 * var(--f, 0.5)); }
+@keyframes part-pop { 0% { filter: brightness(1); } 2% { filter: brightness(2.2); } 10%, 100% { filter: brightness(1); } }
+.campus[data-hot] .tag text { opacity: 0; } .campus[data-hot] .tag[data-tag="1"] text, .campus[data-hot="1"] .tag[data-tag="1"] text { opacity: 0; }
+.campus[data-hot="1"] .tag[data-tag="1"] text, .campus[data-hot="2"] .tag[data-tag="2"] text, .campus[data-hot="3"] .tag[data-tag="3"] text, .campus[data-hot="4"] .tag[data-tag="4"] text, .campus[data-hot="5"] .tag[data-tag="5"] text, .campus[data-hot="6"] .tag[data-tag="6"] text, .campus[data-hot="7"] .tag[data-tag="7"] text { opacity: 1 !important; }
+@media (prefers-reduced-motion: reduce) { .scan-band { animation: none !important; opacity: 0; } .tag text { animation: none !important; opacity: 1 !important; } [data-part] .iso { animation: none !important; } }

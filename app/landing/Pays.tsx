@@ -58,12 +58,9 @@ export default function Pays() {
 
       <div className="pays-step pays-answer">
         <div className="pays-flex"><b>{shown} MW</b> could step aside</div>
-        <div className="pays-foot">Illustrative at {Math.round(SHARE * 100)}% flexible. A site's own share comes from its assessment.</div>
-        {pr.priced && pr.a ? (() => { const A = applied(pr.a, flex), B = pr.b ? applied(pr.b, flex) : null; return (<>
+        {pr.priced && pr.a ? (() => { const A = applied(pr.a, flex); return (<>
           <div className="pays-total"><b>{A.text}</b><span>{A.after}</span></div>
-          {B && <div className="pays-split">{pr.b!.scale === "rate" ? `plus ${pr.b!.short ?? pr.b!.name}, ${B.text} ${B.after}` : `plus ${B.text} ${B.after}`}</div>}
         </>); })() : <div className="pays-total"><b>Not priced yet</b></div>}
-        <div className="pays-foot">{pr.note}</div>
         <div className="pays-links">
           <Link href={`/estimate/?program=${encodeURIComponent(place?.program ?? "ERCOT")}&mw=${size ?? ""}&place=${encodeURIComponent(place?.label ?? "")}`} className="pays-link dim">How this is calculated</Link>
           {pr.model && <Link href="/model/" className="pays-link">See the model for {(place?.label ?? "your site").replace(/^near /, "")}</Link>}

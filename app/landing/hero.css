@@ -1,7 +1,7 @@
 @property --gx { syntax: "<percentage>"; inherits: true; initial-value: 75%; }
 @property --gy { syntax: "<percentage>"; inherits: true; initial-value: 70%; }
 /* Meridian hero v3. Flat grid, vignetted, marked intersections, breathing cells, a sun that climbs the meridian. All from --p, --peak, --sy. */
-.hero { position: relative; height: 820vh; height: 820svh; --card-w: 62vw; --card-h: calc(62vw * 9 / 16); --card-gap: 8vw; --mx: -999px; --my: -999px; --hover: 0; --set: 0; --p: 0; --peak: 0; --sy: 50; --out: 0; --gx: 75%; --gy: 70%; --cell: 80px; --ox: 0px; }
+.hero { position: relative; height: 560vh; height: 560svh; --card-w: 62vw; --card-h: calc(62vw * 9 / 16); --card-gap: 8vw; --mx: -999px; --my: -999px; --hover: 0; --set: 0; --p: 0; --peak: 0; --sy: 50; --out: 0; --gx: 75%; --gy: 70%; --cell: 80px; --ox: 0px; }
 .hero-scene { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #000; isolation: isolate; }
 /* exit: the grid, cells, meridian and light dissolve over the last stretch of the scroll */
 .hero-fade { opacity: calc(1 - var(--out)); }
@@ -49,9 +49,9 @@
 .hero-sun-haze { position: absolute; left: 50%; top: 50%; width: calc(60vw + var(--peak) * 30vw); height: 90px; transform: translate(-50%, -50%); border-radius: 50%;
   background: radial-gradient(ellipse at center, rgba(243,217,122, calc(0.05 + var(--peak) * 0.05)), transparent 70%); }
 .hero-sun-bloom { position: absolute; left: 50%; top: 50%; width: calc(180px + var(--peak) * 180px); height: calc(180px + var(--peak) * 180px); transform: translate(-50%, -50%); border-radius: 50%;
-  background: radial-gradient(circle, rgba(243,217,122, calc(0.12 + var(--peak) * 0.10)) 0%, rgba(212,175,55,0.04) 42%, transparent 70%); animation: breathe-sun 4200ms ease-in-out infinite; }
+  background: radial-gradient(circle, rgba(243,217,122, calc(0.12 + var(--peak) * 0.10)) 0%, rgba(212,175,55,0.04) 42%, transparent 70%); }
 .hero-sun-halo { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,248,225,0.9) 0%, rgba(243,217,122,0.35) 45%, transparent 72%); animation: breathe-sun 4200ms ease-in-out infinite; }
+  background: radial-gradient(circle, rgba(255,248,225,0.9) 0%, rgba(243,217,122,0.35) 45%, transparent 72%); }
 .hero-sun-core { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; transform: translate(-50%, -50%); border-radius: 50%; background: #fffaf0;
   box-shadow: 0 0 0 1px rgba(255,250,240,0.9), 0 0 6px 1px rgba(255,243,196,0.7); }
 @keyframes breathe-sun { 0%, 100% { scale: 1; } 50% { scale: 1.05; } }

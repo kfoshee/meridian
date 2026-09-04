@@ -61,7 +61,7 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     const n = ix && inTexas(lat, lon) ? nearest(ix.nodes, lat, lon) : null;
     return { nodeId: n?.id ?? null, nodeName: n?.name ?? `near ${c[0]}`, label: `near ${c[0]}`, program, typed: true, guessed };
   };
-  const pickGuess = (p: Place) => { savePlace(p); setQ(""); onChange(p); setNote("Not right? Pick a place or type a city."); };
+  const pickGuess = (p: Place) => { savePlace(p); setQ(""); setNote(""); onChange(p); };
   const locate = () => {
     if (!navigator.geolocation) { setNote("No location available."); return; }
     setNote("Finding you…");
@@ -83,12 +83,13 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     const edge = fetch("/api/where/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null).catch(() => null);
     const open = () => fetch("https://get.geojs.io/v1/ip/geo.json", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null)
       .then(j => j && Number.isFinite(+j.latitude) && Number.isFinite(+j.longitude) ? { ok: true, lat: +j.latitude, lon: +j.longitude } : null).catch(() => null);
-    edge.then(g => (g && g.ok) ? g : open()).then(g => {
-      if (!g || !g.ok) return;
+    const open2 = () => fetch("https://ipapi.co/json/", { signal: ctrl.signal }).then(r => r.ok ? r.json() : null)
+      .then(j => j && Number.isFinite(+j.latitude) && Number.isFinite(+j.longitude) ? { ok: true, lat: +j.latitude, lon: +j.longitude } : null).catch(() => null);
+    edge.then(g => (g && g.ok) ? g : open()).then(g => (g && g.ok) ? g : open2()).then(g => {
       const now = readPlace();
       if (now && !now.guessed) return;
-      const p = placeAt(g.lat, g.lon, true);
-      if (!p) return;
+      // a place is always chosen on load: the guess, or Houston when the guess is outside the markets or unavailable
+      const p = (g && g.ok ? placeAt(g.lat, g.lon, true) : null) ?? { nodeId: "HB_HOUSTON", nodeName: nodeName("HB_HOUSTON"), label: "Houston", program: "CenterPoint" as Program, typed: true, guessed: true };
       pickGuess(p);
     }).catch(() => {});
     return () => ctrl.abort();
