@@ -12,8 +12,10 @@ export default function Four() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setChapter(STEPS); return; }
     // phones: no pinned track; the campus builds itself when the section comes into view
     if (matchMedia("(max-width: 900px)").matches) {
-      const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setChapter(STEPS); io.disconnect(); } }, { threshold: 0.25 });
-      io.observe(el); return () => io.disconnect();
+      const arrive = () => { if (el.getBoundingClientRect().top < innerHeight * 0.85) { setChapter(STEPS); removeEventListener("scroll", arrive); io.disconnect(); } };
+      const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) arrive(); }, { threshold: 0.05 });
+      io.observe(el); addEventListener("scroll", arrive, { passive: true }); arrive();
+      return () => { io.disconnect(); removeEventListener("scroll", arrive); };
     }
     let raf = 0, last = 0;
     // the chapter index from raw progress; React renders only when the index changes (at most eight times per pass)

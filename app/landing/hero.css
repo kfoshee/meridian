@@ -68,7 +68,7 @@
   color: color-mix(in oklab, var(--ink) calc(72% + var(--peak) * 28%), var(--muted)); z-index: 2; }
 .hero-copy strong { font-weight: 500; color: var(--ink); }
 
-@media (max-width: 640px) { .hero { --cell: 56px; } .hero-clear { height: 140px; } .hero-sun-bloom { width: 320px; height: 320px; } }
+@media (max-width: 640px) { .hero { --cell: 56px; height: 300vh; height: 300svh; } .hero-scene { height: 100dvh; } .hero-clear { height: 140px; } .hero-sun-bloom { width: 320px; height: 320px; } }
 @media (hover: none) { .hero-grid-lit { --r: calc(24vmax + var(--peak) * 110vmax); } }
 
 
