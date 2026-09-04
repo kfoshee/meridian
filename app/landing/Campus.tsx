@@ -38,7 +38,7 @@ export const CHAPTERS = [
   { n: 1, name: "Switchyard", spec: "138 kV · 2 × 60 MVA", we: "Prices, weather and reserves, watched hours ahead." },
   { n: 2, name: "Meter & switchgear", spec: "96 to 56 MW", we: "The number the grid sees, held to the megawatt.", gold: true },
   { n: 3, name: "Firm hall", spec: "56 MW · always on", we: "Untouched. Every deadline kept." },
-  { n: 4, name: "Flexible hall", spec: "40 MW · separable", we: "Solved per event: which racks, how deep, how long. Most income, no missed deadline.", gold: true },
+  { n: 4, name: "Flexible hall", spec: "40 MW · separable", we: "Each event solved rack by rack: most income, zero missed deadlines.", gold: true },
   { n: 5, name: "Cooling", spec: "chiller plant N+1", we: "Pre-cooled to the minute, so the halls coast instead of stopping." },
   { n: 6, name: "Backup generation", spec: "4 × 3 MW", we: "Started only when cheaper than the revenue it saves." },
   { n: 7, name: "Battery", spec: "20 MWh", we: "Charged on cheap hours, dispatched where the price peaks.", gold: true },
