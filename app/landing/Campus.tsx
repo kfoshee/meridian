@@ -57,7 +57,7 @@ export default function Campus({ p }: { p: number }) {
   const trayFirm = [P(6, 40, 3), P(30, 40, 3), P(30, 70, 3)];
   const trayFlex = [P(6, 40, 3), P(14, 40, 3), P(14, 128, 3), P(176, 128, 3), P(176, 118, 3)];
   const pipe = (y: number) => [P(190, y, 33), P(150, y, 33), P(150, y, 4), P(126, y, 4)];
-  const part = (n: number) => ({ "data-part": n, className: `${built(n) ? "on" : ""}${active === n ? " hot" : ""}`, onMouseEnter: () => done && setHover(n), onMouseLeave: () => setHover(null) });
+  const part = (n: number) => ({ "data-part": n, className: `campus-layer${built(n) ? " on" : ""}${active === n ? " hot" : ""}`, onMouseEnter: () => done && setHover(n), onMouseLeave: () => setHover(null) });
   const cur = CHAPTERS[Math.min(6, Math.max(0, (active ?? 1) - 1))];
 
   return (
@@ -83,11 +83,11 @@ export default function Campus({ p }: { p: number }) {
         </ol>
       </div>
 
-      <svg viewBox="170 -4 860 504" className="campus-svg" aria-hidden="true">
-        <g data-part={0} className="on"><Box x={0} y={0} w={250} d={132} h={2} tone="dim" delay={0} /></g>
+      <div className="campus-stage" aria-hidden="true">
+        <svg viewBox="170 -4 860 504" className="campus-layer" data-part={0}><Box x={0} y={0} w={250} d={132} h={2} tone="dim" delay={0} /></svg>
 
         {/* 1 · switchyard */}
-        <g {...part(1)}>
+        <svg viewBox="170 -4 860 504" {...part(1)}>
           {[-96, -76, -56].map((x, i) => (
             <g key={i} className="iso" style={{ transitionDelay: `${i * 160}ms` }}>
               <line {...L(P(x, 62, 0), P(x, 62, 26))} className="pole" />
@@ -113,33 +113,33 @@ export default function Campus({ p }: { p: number }) {
           ))}
           {[-24, -20].map((x, i) => <Box key={i} x={x} y={38} z={0.4} w={2.5} d={26} h={5} tone="dim" delay={1150 + i * 120} />)}
           <Mark n={1} at={P(-33, 44, 12)} dy={-22} delay={1400} />
-        </g>
+        </svg>
 
         {/* 2 · feed, meter, switchgear, trays */}
-        <g {...part(2)}>
+        <svg viewBox="170 -4 860 504" {...part(2)}>
           <polyline points={pts(feed)} className="feed" pathLength={1} />
           <Box x={4} y={36} z={2} w={6} d={8} h={6} tone="gold" delay={900} />
           <polyline points={pts(trayFirm)} className="tray" pathLength={1} style={{ transitionDelay: "1200ms" }} />
           <polyline points={pts(trayFlex)} className="tray gold" pathLength={1} style={{ transitionDelay: "1400ms" }} />
           <Mark n={2} at={P(7, 36, 8)} dy={-20} delay={1300} gold />
-        </g>
+        </svg>
 
         {/* 3 · firm hall */}
-        <g {...part(3)}>
+        <svg viewBox="170 -4 860 504" {...part(3)}>
           {Array.from({ length: 5 }, (_, i) => <Box key={`r${i}`} x={32} y={22 + i * 18} z={3} w={104} d={5} h={7} tone="rack" delay={250 + i * 180} />)}
           <Box x={22} y={12} z={2} w={124} d={104} h={30} tone="glass" delay={1300} />
           <Mark n={3} at={P(84, 64, 32)} dy={0} delay={1600} />
-        </g>
+        </svg>
         {/* 4 · flexible hall */}
-        <g {...part(4)}>
+        <svg viewBox="170 -4 860 504" {...part(4)}>
           {Array.from({ length: 5 }, (_, i) => <Box key={`f${i}`} x={162} y={22 + i * 18} z={3} w={58} d={5} h={7} tone="rack gold" delay={250 + i * 180} />)}
           <Box x={154} y={12} z={2} w={74} d={104} h={30} tone="glass gold" delay={1300} />
           <g className="iso" style={{ transitionDelay: "1400ms" }}><line {...L(P(150, 12, 32), P(150, 116, 32))} className="wall" /></g>
           <Mark n={4} at={P(191, 64, 32)} dy={0} delay={1600} gold />
-        </g>
+        </svg>
 
         {/* 5 · cooling */}
-        <g {...part(5)}>
+        <svg viewBox="170 -4 860 504" {...part(5)}>
           <Box x={100} y={122} z={2} w={44} d={14} h={10} tone="dim" delay={0} />
           {[0, 1, 2].map(i => <Box key={i} x={104 + i * 14} y={124} z={12} w={10} d={10} h={4} tone="dim" delay={250 + i * 140} />)}
           <g className="iso" style={{ transitionDelay: "700ms" }}>{[40, 80].map((y, i) => <polyline key={i} points={pts(pipe(y))} className="pipe" />)}</g>
@@ -147,21 +147,21 @@ export default function Campus({ p }: { p: number }) {
           {Array.from({ length: 3 }, (_, i) => <Box key={`cf${i}`} x={162 + i * 22} y={100} z={32} w={12} d={9} h={5} tone="dim" delay={1560 + i * 110} />)}
           <g className="iso" style={{ transitionDelay: "1900ms" }}>{Array.from({ length: 9 }, (_, i) => { const x = i < 6 ? 36 + i * 19 : 168 + (i - 6) * 22; const c = P(x, 104.5, 37); return <ellipse key={i} cx={c[0]} cy={c[1]} rx={5} ry={2.6} className="fan" />; })}</g>
           <Mark n={5} at={P(122, 129, 16)} dy={0} delay={2000} />
-        </g>
+        </svg>
 
         {/* 6 · backup generation */}
-        <g {...part(6)}>
+        <svg viewBox="170 -4 860 504" {...part(6)}>
           {Array.from({ length: 4 }, (_, i) => <Box key={`g${i}`} x={34 + i * 28} y={-8} z={0.4} w={18} d={7} h={7} tone="dim" delay={i * 200} />)}
           <Mark n={6} at={P(80, -4, 8)} dy={-16} delay={900} />
-        </g>
+        </svg>
 
         {/* 7 · battery */}
-        <g {...part(7)}>
+        <svg viewBox="170 -4 860 504" {...part(7)}>
           {Array.from({ length: 6 }, (_, i) => <Box key={`b${i}`} x={156 + i * 13} y={122} z={2} w={10} d={6} h={6} tone="gold" delay={i * 160} />)}
           {Array.from({ length: 3 }, (_, i) => <Box key={`iv${i}`} x={158 + i * 26} y={131} z={2} w={6} d={3} h={3} tone="dim" delay={1000 + i * 140} />)}
           <Mark n={7} at={P(195, 125, 8)} dy={-16} delay={1400} gold />
-        </g>
-      </svg>
+        </svg>
+      </div>
     </div>
   );
 }
