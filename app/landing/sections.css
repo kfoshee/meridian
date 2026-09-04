@@ -210,7 +210,7 @@
 
 
 /* the campus, built in isometric: legend beside the drawing */
-.campus { width: min(1240px, 96vw); margin: 0 auto; display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: clamp(20px, 3vw, 48px); align-items: center; }
+.campus { width: min(1280px, 96vw); margin: 0 auto; display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: clamp(20px, 3vw, 48px); align-items: center; }
 .campus-side { display: grid; gap: 28px; }
 .campus-svg { width: 100%; max-height: 74svh; overflow: visible; display: block; }
 .iso { opacity: 0; transform: translateY(26px); transition: opacity 900ms var(--ease), transform 1300ms var(--ease); }
@@ -507,3 +507,35 @@ html { overflow-anchor: none; } /* the campus track folds itself; the browser mu
 .pays-links { display: flex; gap: 28px; flex-wrap: wrap; }
 .pays-link.dim { color: var(--muted); }
 .pays-total { margin-top: 14px; }
+
+/* the plan for one event, beside the finished campus */
+.legend.off { display: none; }
+.plan { display: grid; gap: 14px; animation: chapter-in 600ms var(--ease) both; }
+.plan-svg { width: 100%; height: auto; overflow: visible; font-family: var(--font-ui), system-ui, sans-serif; }
+.plan-ax { fill: var(--faint); font-size: 8.5px; letter-spacing: 0.08em; }
+.plan-mw { fill: var(--faint); font-size: 8.5px; font-variant-numeric: tabular-nums; } .plan-mw.hot { fill: var(--gold-hi); }
+.plan-meter-base { fill: none; stroke: var(--line-2); stroke-width: 1; }
+.plan-meter { fill: none; stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.plan-name { fill: var(--ink); font-size: 10px; letter-spacing: 0.02em; }
+.plan-tick { stroke: var(--line-2); stroke-width: 1; }
+.plan-spec { fill: var(--faint); font-size: 8px; letter-spacing: 0.02em; }
+.plan-bar { opacity: 0.22; transition: opacity 400ms var(--ease); }
+.plan-lane.gold .plan-bar { fill: var(--gold); } .plan-lane.hi .plan-bar { fill: var(--gold-hi); } .plan-lane.lo .plan-bar { fill: var(--gold-lo); } .plan-lane.ink .plan-bar { fill: rgba(247,242,230,0.75); } .plan-lane.dim .plan-bar { fill: rgba(247,242,230,0.28); }
+.plan-bar.pre { opacity: 0.12; }
+.plan-head { stroke: #fff6dc; stroke-width: 1; opacity: 0; }
+.plan-figs { display: grid; grid-template-columns: repeat(3, auto); gap: 18px; justify-content: start; }
+.plan-figs b { display: block; color: var(--ink); font-weight: 200; font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.plan-figs div:first-child b { color: var(--gold-hi); }
+.plan-figs span { display: block; margin-top: 5px; color: var(--faint); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+/* the plan runs with the drawing: one 14 s cycle. −30 min at 14 %, the event at 36 %, +3 h at 68 % */
+.campus.done:not([data-hot]) .plan-head { animation: plan-head 14s linear infinite; }
+@keyframes plan-head { 0%, 13% { opacity: 0; transform: translateX(0); } 14% { opacity: 1; transform: translateX(0); } 68% { opacity: 1; transform: translateX(268px); } 69%, 100% { opacity: 0; transform: translateX(268px); } }
+.campus.done:not([data-hot]) .plan-lane.gold:first-child .plan-bar.pre { animation: plan-on 14s linear infinite; animation-delay: calc(-14s * 0.02); }
+.campus.done:not([data-hot]) .plan-lane .plan-bar:not(.pre) { animation: plan-on 14s linear infinite; }
+.campus.done:not([data-hot]) .plan-lane:nth-child(4) .plan-bar:not(.pre) { animation-delay: calc(14s * 0.025); }
+.campus.done:not([data-hot]) .plan-lane:nth-child(7) .plan-bar:not(.pre) { animation: none; opacity: 0.5; }
+@keyframes plan-on { 0%, 35% { opacity: 0.22; } 37%, 67% { opacity: 1; } 70%, 100% { opacity: 0.22; } }
+.campus.done:not([data-hot]) .plan-lane.gold:first-child .plan-bar.pre { animation: plan-pre 14s linear infinite; }
+@keyframes plan-pre { 0%, 17% { opacity: 0.12; } 19%, 35% { opacity: 0.8; } 38%, 100% { opacity: 0.12; } }
+@media (max-width: 640px) { .plan-figs { gap: 14px; } }
+@media (prefers-reduced-motion: reduce) { .plan-head, .plan-bar { animation: none !important; } .plan-bar { opacity: 0.9 !important; } }

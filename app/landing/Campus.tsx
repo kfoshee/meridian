@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // The campus, built one decision at a time as you scroll. Seven chapters: each one raises a part of the
 // campus, lights it, and says what Meridian decides there. At the end the whole campus stands and the
@@ -31,6 +31,52 @@ function Mark({ n, at, dy, delay, gold }: { n: number; at: readonly [number, num
       <circle cx={at[0]} cy={at[1] + dy} r={8} />
       <text x={at[0]} y={at[1] + dy + 3} textAnchor="middle">{n}</text>
     </g>
+  );
+}
+
+// The plan for one event: what every part does, when, on one timeline. Drawn once; the playhead and the
+// lanes light with the same 14-second cycle as the drawing, so the two tell one story.
+const T0 = -30, T1 = 180, PX = 24, PW = 268;                     // minutes → x
+const tx = (m: number) => PX + (m - T0) / (T1 - T0) * PW;
+const LANES: { name: string; spec: string; from: number; to: number; tone: string; pre?: [number, number] }[] = [
+  { name: "Cooling", spec: "pre-cool 20 min · coasts 25 min", from: 0, to: 25, tone: "gold", pre: [-20, 0] },
+  { name: "Workloads", spec: "deferrable paused · deadlines kept", from: 0, to: 180, tone: "lo" },
+  { name: "Battery", spec: "20 MWh · 2 h at 10 MW", from: 0, to: 120, tone: "hi" },
+  { name: "Backup", spec: "4 × 3 MW · 10 min start", from: 10, to: 180, tone: "ink" },
+  { name: "Flexible hall", spec: "40 MW steps aside", from: 0, to: 180, tone: "gold" },
+  { name: "Firm hall", spec: "56 MW · untouched", from: T0, to: T1, tone: "dim" },
+];
+function Plan({ on }: { on: boolean }) {
+  const [k, setK] = useState(0);
+  useEffect(() => {
+    if (!on) { setK(0); return; }
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setK(1); return; }
+    const t0 = performance.now(); let raf = 0;
+    const step = (t: number) => { const u = Math.min(1, (t - t0 - 400) / 1200); setK(Math.max(0, 1 - Math.pow(1 - Math.max(0, u), 3))); if (u < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step); return () => cancelAnimationFrame(raf);
+  }, [on]);
+  const meter = `M${tx(T0)},18 L${tx(0)},18 L${tx(0)},40 L${tx(T1)},40`;
+  return (
+    <div className="plan">
+      <svg viewBox="0 0 300 206" className="plan-svg" aria-hidden="true">
+        <text className="plan-ax" x={tx(0) + 4} y={10}>the event</text><text className="plan-ax" x={tx(T1)} y={10} textAnchor="end">+3 h</text><line className="plan-tick" x1={tx(0)} x2={tx(0)} y1={12} y2={48} />
+        <path className="plan-meter-base" d={`M${tx(T0)},18 L${tx(T1)},18`} />
+        <path className="plan-meter" d={meter} />
+        <text className="plan-mw" x={tx(T0) - 4} y={21} textAnchor="end">96</text><text className="plan-mw hot" x={tx(T0) - 4} y={43} textAnchor="end">56</text>
+        {LANES.map((l, i) => { const y = 54 + i * 25; return (
+          <g key={l.name} className={`plan-lane ${l.tone}`} style={{ "--i": i } as React.CSSProperties}>
+            <text className="plan-name" x={tx(T0)} y={y + 8}>{l.name}</text><text className="plan-spec" x={tx(T1)} y={y + 8} textAnchor="end">{l.spec}</text>
+            {l.pre && <rect className="plan-bar pre" x={tx(l.pre[0])} y={y + 12} width={tx(l.pre[1]) - tx(l.pre[0])} height={6} />}
+            <rect className="plan-bar" x={tx(l.from)} y={y + 12} width={tx(l.to) - tx(l.from)} height={6} />
+          </g>); })}
+        <line className="plan-head" x1={0} x2={0} y1={14} y2={204} style={{ "--x0": tx(T0), "--x1": tx(T1) } as React.CSSProperties} transform={`translate(${tx(T0)} 0)`} />
+      </svg>
+      <div className="plan-figs">
+        <div><b>{Math.round(96 - 40 * k)} MW</b><span>at the meter</span></div>
+        <div><b>{Math.round(99 * k)}%</b><span>of work on time</span></div>
+        <div><b>lowest</b><span>cost mix</span></div>
+      </div>
+    </div>
   );
 }
 
@@ -71,11 +117,11 @@ export default function Campus({ p }: { p: number }) {
             <div className="chapter-we">{cur.we}</div>
           </>) : (<>
             <div className="chapter-n">{done ? "7 / 7" : "0 / 7"}</div>
-            <div className="chapter-name">{done ? "The whole campus" : "A parcel and a slab"}</div>
-            {done && <div className="chapter-we">40 of 96 MW can step aside. The rest never does. Hover any part.</div>}
+            <div className="chapter-name">{done ? "One event. Seven parts. One plan." : "A parcel and a slab"}</div>
           </>)}
         </div>
-        <ol className="legend">
+        {done && !active && <Plan on={done} />}
+        <ol className={`legend${done ? " off" : ""}`}>
           {CHAPTERS.map(l => (
             <li key={l.n} className={`${l.gold ? "gold" : ""}${built(l.n) ? " built" : ""}${active === l.n ? " hot" : ""}`} onMouseEnter={() => done && setHover(l.n)} onMouseLeave={() => setHover(null)}>
               <i>{l.n}</i><div><b>{l.name}</b></div>
