@@ -84,7 +84,7 @@ export default function Campus({ p }: { p: number }) {
       </div>
 
       <div className="campus-stage" aria-hidden="true">
-        <svg viewBox="170 -4 860 504" className="campus-layer" data-part={0}><Box x={0} y={0} w={250} d={132} h={2} tone="ink" delay={0} /></svg>
+        <svg viewBox="170 -4 860 504" className="campus-layer on" data-part={0}><Box x={0} y={0} w={250} d={132} h={2} tone="ink" delay={0} /></svg>
 
         {/* 1 · switchyard */}
         <svg viewBox="170 -4 860 504" {...part(1)}>
