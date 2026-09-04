@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://meridian.kianfoshee.com"),
   title: "Meridian",
   description: "Meridian manages power for AI data centers.",
-  openGraph: { title: "Meridian", description: "Meridian manages power for AI data centers.", url: "https://meridian.kianfoshee.com", siteName: "Meridian", images: [{ url: "/media/meridian-mark-11.png", width: 720, height: 610 }] },
-  twitter: { card: "summary", title: "Meridian", description: "Meridian manages power for AI data centers.", images: ["/media/meridian-mark-11.png"] },
+  openGraph: { title: "Meridian", description: "Meridian manages power for AI data centers.", url: "https://meridian.kianfoshee.com", siteName: "Meridian", images: [{ url: "/media/meridian-mark-12.png", width: 720, height: 610 }] },
+  twitter: { card: "summary", title: "Meridian", description: "Meridian manages power for AI data centers.", images: ["/media/meridian-mark-12.png"] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
