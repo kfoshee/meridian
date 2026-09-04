@@ -557,3 +557,5 @@ html { overflow-anchor: none; } /* the campus track folds itself; the browser mu
 .city-list li.out { color: var(--faint); } .city-list li.out:hover { color: var(--faint); background: none; cursor: default; }
 .city-list li span { color: var(--faint); font-size: 11px; letter-spacing: 0.04em; }
 .city-list .hd { color: var(--faint); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; padding: 8px 10px 4px; }
+
+.chapter-we.late { opacity: 0; animation: chapter-in 700ms var(--ease) 1400ms both; }

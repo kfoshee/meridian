@@ -72,6 +72,7 @@ export default function Campus({ p }: { p: number }) {
           </>) : (<>
             <div className="chapter-n">{done ? "7 / 7" : "0 / 7"}</div>
             <div className="chapter-name">{done ? "The whole campus" : "A parcel and a slab"}</div>
+            {done && <div className="chapter-we late">Optimized for income and reliability.</div>}
           </>)}
         </div>
         <ol className="legend">
