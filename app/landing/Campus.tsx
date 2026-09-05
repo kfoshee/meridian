@@ -1,166 +1,410 @@
 "use client";
-import { useState } from "react";
 
-// The campus, built one decision at a time as you scroll. Seven chapters: each one raises a part of the
-// campus, lights it, and says what Meridian decides there. At the end the whole campus stands and the
-// legend answers hover. Pure SVG, computed projection. No sweep, no tilt.
-const S = 2.25;
-const CX = 520, CY = 100;
-const COS = Math.cos(Math.PI / 6), SIN = Math.sin(Math.PI / 6);
-const P = (x: number, y: number, z: number) => [CX + (x - y) * COS * S, CY + (x + y) * SIN * S - z * S] as const;
-const pts = (a: (readonly [number, number])[]) => a.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ");
-const L = (a: readonly [number, number], b: readonly [number, number]) => ({ x1: a[0], y1: a[1], x2: b[0], y2: b[1] });
-const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import {
+  Component,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+  type ReactNode,
+} from "react";
+import { EQUIPMENT, type EquipmentId } from "./campus-config";
+import type { SceneProps } from "./CampusScene";
 
-type Tone = "ink" | "gold" | "dim" | "glass" | "glass gold" | "rack" | "rack gold";
-type BoxProps = { x: number; y: number; z?: number; w: number; d: number; h: number; tone?: Tone; delay: number };
-function Box({ x, y, z = 0, w, d, h, tone = "ink", delay }: BoxProps) {
-  const p100 = P(x + w, y, z), p110 = P(x + w, y + d, z), p010 = P(x, y + d, z);
-  const p001 = P(x, y, z + h), p101 = P(x + w, y, z + h), p111 = P(x + w, y + d, z + h), p011 = P(x, y + d, z + h);
-  return (
-    <g className={`iso ${tone}`} style={{ transitionDelay: `${delay}ms` }}>
-      <polygon className="f-left" points={pts([p011, p111, p110, p010])} />
-      <polygon className="f-right" points={pts([p101, p100, p110, p111])} />
-      <polygon className="f-top" points={pts([p001, p101, p111, p011])} />
-    </g>
-  );
-}
-function Mark({ n, at, dy, delay, gold }: { n: number; at: readonly [number, number]; dy: number; delay: number; gold?: boolean }) {
-  return (
-    <g className={`iso mark${gold ? " gold" : ""}`} style={{ transitionDelay: `${delay}ms` }}>
-      <circle cx={at[0]} cy={at[1] + dy} r={8} />
-      <text x={at[0]} y={at[1] + dy + 3} textAnchor="middle">{n}</text>
-    </g>
-  );
+const Scene = dynamic<SceneProps>(() => import("./CampusScene"), { ssr: false });
+
+class SceneBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch() {
+    this.props.onError();
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
-export const CHAPTERS = [
-  { n: 1, name: "Switchyard", spec: "138 kV · 2 × 60 MVA", we: "Prices, weather and reserves, watched hours ahead." },
-  { n: 2, name: "Meter & switchgear", spec: "96 to 56 MW", we: "The number the grid sees, held to the megawatt.", gold: true },
-  { n: 3, name: "Firm hall", spec: "56 MW · always on", we: "Untouched. Every deadline kept." },
-  { n: 4, name: "Flexible hall", spec: "40 MW · separable", we: "Earn income from your provider for flexibility.", gold: true },
-  { n: 5, name: "Cooling", spec: "chiller plant N+1", we: "Pre-cooled to the minute, so the halls coast instead of stopping." },
-  { n: 6, name: "Backup generation", spec: "4 × 3 MW", we: "Started only when cheaper than the revenue it saves." },
-  { n: 7, name: "Battery", spec: "20 MWh", we: "Charged on cheap hours, dispatched where the price peaks.", gold: true },
-];
-export const STEPS = CHAPTERS.length + 1; // slab first, then seven decisions
-
-// p ∈ [0,1] is the section's scroll progress; chapter 0 = the slab, 1..7 = the decisions, 8 = complete
-export default function Campus({ p }: { p: number }) {
-  const [hover, setHover] = useState<number | null>(null);
-  const chapter = Math.min(STEPS, Math.max(0, p));   // p is the chapter index, set only when it changes
-  const done = chapter >= STEPS;
-  const active = done ? hover : chapter >= 1 ? chapter : null;
-  const built = (n: number) => chapter >= n;
-
-  const feed = [P(-96, 62, 1), P(-56, 62, 1), P(-56, 48, 1), P(-30, 48, 1), P(-30, 40, 1), P(6, 40, 1)];
-  const trayFirm = [P(6, 40, 3), P(30, 40, 3), P(30, 70, 3)];
-  const trayFlex = [P(6, 40, 3), P(14, 40, 3), P(14, 128, 3), P(176, 128, 3), P(176, 118, 3)];
-  const pipe = (y: number) => [P(190, y, 33), P(150, y, 33), P(150, y, 4), P(126, y, 4)];
-  const part = (n: number) => ({ "data-part": n, className: `campus-layer${built(n) ? " on" : ""}${active === n ? " hot" : ""}`, onMouseEnter: () => done && setHover(n), onMouseLeave: () => setHover(null) });
-  const cur = CHAPTERS[Math.min(6, Math.max(0, (active ?? 1) - 1))];
+export default function Campus({
+  chapter,
+  storyProgress,
+  onSelect,
+  near,
+  active,
+  reducedMotion,
+}: {
+  chapter: number;
+  storyProgress: RefObject<number>;
+  onSelect: (chapter: number) => void;
+  near: boolean;
+  active: boolean;
+  reducedMotion: boolean;
+}) {
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [hoverState, setHoverState] = useState<{ id: EquipmentId | null; chapter: number }>({
+    id: null,
+    chapter,
+  });
+  const hovered = hoverState.chapter === chapter ? hoverState.id : null;
+  const setHovered = useCallback(
+    (id: EquipmentId | null) => setHoverState({ id, chapter }),
+    [chapter],
+  );
+  const [previewState, setPreviewState] = useState({ id: null as EquipmentId | null, chapter });
+  const [inspection, setInspection] = useState({ id: null as EquipmentId | null, chapter });
+  const inspected =
+    (previewState.chapter === chapter ? previewState.id : null) ??
+    (inspection.chapter === chapter ? inspection.id : null);
+  const markerLock = useRef<{ id: EquipmentId; x: number; y: number } | null>(null);
+  const pointer = useRef({ x: 0, y: 0, orbit: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [zoom, setZoom] = useState(1.2);
+  const stage = useRef<HTMLDivElement>(null);
+  const pinch = useRef<{ distance: number; zoom: number } | null>(null);
+  const lastTouchTime = useRef(0);
+  const lastTap = useRef({ time: 0, x: 0, y: 0 });
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+  const resetView = useCallback(() => {
+    pointer.current = { x: 0, y: 0, orbit: 0 };
+    setZoom(1.2);
+    setHovered(null);
+    setPreviewState({ id: null, chapter });
+    setInspection({ id: null, chapter });
+    markerLock.current = null;
+    onSelect(0);
+  }, [chapter, onSelect, setHovered]);
+  const drag = useRef<{ x: number; y: number; orbit: number; id: EquipmentId | null } | null>(null);
+  const dragged = useRef(false);
+  const markers = useRef<(HTMLButtonElement | null)[]>([]);
+  const selected = EQUIPMENT[chapter - 1]?.id ?? null;
+  const item = EQUIPMENT.find((entry) => entry.id === (inspected ?? hovered ?? selected));
+  const preview = (id: EquipmentId | null) => {
+    setHovered(id);
+    setPreviewState({ id, chapter });
+    if (!id) markerLock.current = null;
+  };
+  const onReady = useCallback(() => setReady(true), []);
+  const onError = useCallback(() => {
+    setFailed(true);
+    setReady(false);
+  }, []);
+  const select = useCallback(
+    (id: EquipmentId) => {
+      const nextChapter = EQUIPMENT.findIndex((item) => item.id === id) + 1;
+      pointer.current.orbit = 0;
+      setInspection({ id, chapter: nextChapter });
+      setPreviewState({ id: null, chapter: nextChapter });
+      onSelect(nextChapter);
+    },
+    [onSelect],
+  );
+  useEffect(() => {
+    const element = stage.current;
+    if (!element) return;
+    const clampZoom = (value: number) => Math.max(0.75, Math.min(1.65, value));
+    const wheel = (event: WheelEvent) => {
+      // Ordinary page scrolling is preserved until the visitor engages the model.
+      if (!event.ctrlKey && document.activeElement !== element) return;
+      event.preventDefault();
+      event.stopPropagation();
+      onSelect(chapter);
+      setZoom((value) => clampZoom(value * Math.exp(-event.deltaY * 0.0025)));
+    };
+    const touchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 2) return;
+      event.preventDefault();
+      event.stopPropagation();
+      drag.current = null;
+      dragged.current = true;
+      setDragging(false);
+      const [a, b] = event.touches;
+      pinch.current = {
+        distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+        zoom: zoomRef.current,
+      };
+      onSelect(chapter);
+    };
+    const touchMove = (event: TouchEvent) => {
+      if (!pinch.current || event.touches.length !== 2) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const [a, b] = event.touches;
+      const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      setZoom(clampZoom((pinch.current.zoom * distance) / Math.max(1, pinch.current.distance)));
+    };
+    const touchEnd = () => {
+      pinch.current = null;
+    };
+    element.addEventListener("wheel", wheel, { passive: false });
+    element.addEventListener("touchstart", touchStart, { passive: false });
+    element.addEventListener("touchmove", touchMove, { passive: false });
+    element.addEventListener("touchend", touchEnd);
+    element.addEventListener("touchcancel", touchEnd);
+    return () => {
+      element.removeEventListener("wheel", wheel);
+      element.removeEventListener("touchstart", touchStart);
+      element.removeEventListener("touchmove", touchMove);
+      element.removeEventListener("touchend", touchEnd);
+      element.removeEventListener("touchcancel", touchEnd);
+    };
+  }, [chapter, onSelect]);
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") resetView();
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [resetView]);
 
   return (
-    <div className={`campus on${chapter >= 1 ? " started" : ""}${done ? " done" : ""}`} data-hot={active ?? undefined}>
-      <div className="campus-side">
-        <div className="chapter" key={active ?? "none"}>
-          {active ? (<>
-            <div className="chapter-n">{active} <span>/ 7</span></div>
-            <div className={`chapter-name${cur.gold ? " gold" : ""}`}>{cur.name}</div>
-            <div className="chapter-spec">{cur.spec}</div>
-            <div className="chapter-we">{cur.we}</div>
-          </>) : (<>
-            <div className="chapter-n">{done ? "7 / 7" : "0 / 7"}</div>
-            <div className="chapter-name">{done ? "The whole campus" : "A parcel and a slab"}</div>
-          </>)}
+    <div
+      className="dc-campus"
+      data-chapter={chapter}
+      data-hovered={hovered ?? ""}
+      data-inspected={inspected ?? ""}
+      data-renderer={failed ? "fallback" : ready ? "webgl" : "loading"}
+    >
+      <div className="dc-side">
+        <div className="dc-chapter" aria-live="polite" aria-atomic="true">
+          <div className="dc-count">
+            {item ? EQUIPMENT.indexOf(item) + 1 : 0} <span>/ 7</span>
+          </div>
+          <h3>{item?.name ?? "The whole campus"}</h3>
+          <p>{item?.detail ?? "Power, working together."}</p>
         </div>
-        <ol className="legend">
-          {CHAPTERS.map(l => (
-            <li key={l.n} className={`${l.gold ? "gold" : ""}${built(l.n) ? " built" : ""}${active === l.n ? " hot" : ""}`} onMouseEnter={() => done && setHover(l.n)} onMouseLeave={() => setHover(null)}>
-              <i>{l.n}</i><div><b>{l.name}</b></div>
-            </li>
+        <nav className="dc-legend" aria-label="Explore the campus">
+          {EQUIPMENT.map((equipment, index) => (
+            <button
+              key={equipment.id}
+              type="button"
+              aria-pressed={selected === equipment.id}
+              onClick={() => select(equipment.id)}
+              onPointerEnter={(event) => {
+                if (event.pointerType === "mouse") preview(equipment.id);
+              }}
+              onPointerLeave={() => preview(null)}
+              onFocus={() => preview(equipment.id)}
+              onBlur={() => preview(null)}
+            >
+              <span>{index + 1}</span>
+              {equipment.name}
+            </button>
           ))}
-        </ol>
+        </nav>
       </div>
-
-      <div className="campus-stage" aria-hidden="true">
-        <svg viewBox="170 -4 860 504" className="campus-layer on" data-part={0}><Box x={0} y={0} w={250} d={132} h={2} tone="ink" delay={0} /></svg>
-
-        {/* 1 · switchyard */}
-        <svg viewBox="170 -4 860 504" {...part(1)}>
-          {[-96, -76, -56].map((x, i) => (
-            <g key={i} className="iso" style={{ transitionDelay: `${i * 160}ms` }}>
-              <line {...L(P(x, 62, 0), P(x, 62, 26))} className="pole" />
-              <line {...L(P(x - 6, 62, 23), P(x + 6, 62, 23))} className="pole" />
-              <line {...L(P(x - 6, 62, 19), P(x + 6, 62, 19))} className="pole" />
-            </g>
-          ))}
-          <g className="iso" style={{ transitionDelay: "500ms" }}>
-            {[23, 19].map((z, k) => [[-96, -76], [-76, -56]].map(([a, b], j) => {
-              const A = P(a - 6, 62, z), B = P(b - 6, 62, z), mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2 + 6;
-              return <path key={`${k}${j}`} d={`M${A[0]},${A[1]} Q${mx},${my} ${B[0]},${B[1]}`} className="wire" />;
-            }))}
-          </g>
-          <g className="iso" style={{ transitionDelay: "650ms" }}>
-            <polygon points={pts([P(-52, 30, 0.4), P(-14, 30, 0.4), P(-14, 70, 0.4), P(-52, 70, 0.4)])} className="yard" />
-            {[36, 48, 60].map((y, i) => <line key={i} {...L(P(-50, y, 8), P(-16, y, 8))} className="bus" />)}
-          </g>
-          {[[-34, 33], [-34, 55]].map(([x, y], i) => (
-            <g key={i}>
-              <Box x={x} y={y} z={0.4} w={11} d={9} h={8} tone="dim" delay={800 + i * 160} />
-              <Box x={x + 2} y={y + 2} z={8.4} w={7} d={5} h={3} tone="dim" delay={900 + i * 160} />
-            </g>
-          ))}
-          {[-24, -20].map((x, i) => <Box key={i} x={x} y={38} z={0.4} w={2.5} d={26} h={5} tone="dim" delay={1150 + i * 120} />)}
-          <Mark n={1} at={P(-33, 44, 12)} dy={-22} delay={1400} />
-        </svg>
-
-        {/* 2 · feed, meter, switchgear, trays */}
-        <svg viewBox="170 -4 860 504" {...part(2)}>
-          <polyline points={pts(feed)} className="feed" pathLength={1} />
-          <Box x={4} y={36} z={2} w={6} d={8} h={6} tone="gold" delay={900} />
-          <polyline points={pts(trayFirm)} className="tray" pathLength={1} style={{ transitionDelay: "1200ms" }} />
-          <polyline points={pts(trayFlex)} className="tray gold" pathLength={1} style={{ transitionDelay: "1400ms" }} />
-          <Mark n={2} at={P(7, 36, 8)} dy={-20} delay={1300} gold />
-        </svg>
-
-        {/* 3 · firm hall */}
-        <svg viewBox="170 -4 860 504" {...part(3)}>
-          {Array.from({ length: 5 }, (_, i) => <Box key={`r${i}`} x={32} y={22 + i * 18} z={3} w={104} d={5} h={7} tone="rack" delay={250 + i * 180} />)}
-          <Box x={22} y={12} z={2} w={124} d={104} h={30} tone="glass" delay={1300} />
-          <Mark n={3} at={P(84, 64, 32)} dy={0} delay={1600} />
-        </svg>
-        {/* 4 · flexible hall */}
-        <svg viewBox="170 -4 860 504" {...part(4)}>
-          {Array.from({ length: 5 }, (_, i) => <Box key={`f${i}`} x={162} y={22 + i * 18} z={3} w={58} d={5} h={7} tone="rack gold" delay={250 + i * 180} />)}
-          <Box x={154} y={12} z={2} w={74} d={104} h={30} tone="glass gold" delay={1300} />
-          <g className="iso" style={{ transitionDelay: "1400ms" }}><line {...L(P(150, 12, 32), P(150, 116, 32))} className="wall" /></g>
-          <Mark n={4} at={P(191, 64, 32)} dy={0} delay={1600} gold />
-        </svg>
-
-        {/* 5 · cooling */}
-        <svg viewBox="170 -4 860 504" {...part(5)}>
-          <Box x={100} y={122} z={2} w={44} d={14} h={10} tone="dim" delay={0} />
-          {[0, 1, 2].map(i => <Box key={i} x={104 + i * 14} y={124} z={12} w={10} d={10} h={4} tone="dim" delay={250 + i * 140} />)}
-          <g className="iso" style={{ transitionDelay: "700ms" }}>{[40, 80].map((y, i) => <polyline key={i} points={pts(pipe(y))} className="pipe" />)}</g>
-          {Array.from({ length: 6 }, (_, i) => <Box key={`c${i}`} x={30 + i * 19} y={100} z={32} w={12} d={9} h={5} tone="dim" delay={900 + i * 110} />)}
-          {Array.from({ length: 3 }, (_, i) => <Box key={`cf${i}`} x={162 + i * 22} y={100} z={32} w={12} d={9} h={5} tone="dim" delay={1560 + i * 110} />)}
-          <g className="iso" style={{ transitionDelay: "1900ms" }}>{Array.from({ length: 9 }, (_, i) => { const x = i < 6 ? 36 + i * 19 : 168 + (i - 6) * 22; const c = P(x, 104.5, 37); return <ellipse key={i} cx={c[0]} cy={c[1]} rx={5} ry={2.6} className="fan" />; })}</g>
-          <Mark n={5} at={P(122, 129, 16)} dy={0} delay={2000} />
-        </svg>
-
-        {/* 6 · backup generation */}
-        <svg viewBox="170 -4 860 504" {...part(6)}>
-          {Array.from({ length: 4 }, (_, i) => <Box key={`g${i}`} x={34 + i * 28} y={-8} z={0.4} w={18} d={7} h={7} tone="dim" delay={i * 200} />)}
-          <Mark n={6} at={P(80, -4, 8)} dy={-16} delay={900} />
-        </svg>
-
-        {/* 7 · battery */}
-        <svg viewBox="170 -4 860 504" {...part(7)}>
-          {Array.from({ length: 6 }, (_, i) => <Box key={`b${i}`} x={156 + i * 13} y={122} z={2} w={10} d={6} h={6} tone="gold" delay={i * 160} />)}
-          {Array.from({ length: 3 }, (_, i) => <Box key={`iv${i}`} x={158 + i * 26} y={131} z={2} w={6} d={3} h={3} tone="dim" delay={1000 + i * 140} />)}
-          <Mark n={7} at={P(195, 125, 8)} dy={-16} delay={1400} gold />
-        </svg>
+      <div className="dc-visual">
+        <div
+          className="dc-stage"
+          ref={stage}
+          title="Drag to rotate · Double-click or pinch to zoom"
+          onDoubleClick={(event) => {
+            if (performance.now() - lastTouchTime.current < 600) return;
+            if ((event.target as HTMLElement).closest("button")) return;
+            event.currentTarget.focus({ preventScroll: true });
+            onSelect(chapter);
+            setZoom((value) => (value > 1.4 ? 1.2 : 1.65));
+          }}
+          data-dragging={dragging}
+          onPointerDown={(event) => {
+            if (event.pointerType === "touch") lastTouchTime.current = performance.now();
+            if ((event.target as HTMLElement).closest("button")) return;
+            dragged.current = false;
+            if (event.pointerType === "mouse") event.currentTarget.focus({ preventScroll: true });
+            if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+            drag.current = {
+              x: event.clientX,
+              y: event.clientY,
+              orbit: pointer.current.orbit,
+              id: inspected ?? selected,
+            };
+          }}
+          onClickCapture={(event) => {
+            if (dragged.current) {
+              event.stopPropagation();
+              dragged.current = false;
+            }
+          }}
+          onPointerUp={(event) => {
+            if (
+              event.pointerType === "touch" &&
+              !dragged.current &&
+              !pinch.current &&
+              !(event.target as HTMLElement).closest("button")
+            ) {
+              const now = performance.now();
+              if (
+                now - lastTap.current.time < 320 &&
+                Math.hypot(event.clientX - lastTap.current.x, event.clientY - lastTap.current.y) <
+                  25
+              ) {
+                onSelect(chapter);
+                setZoom((value) => (value > 1.4 ? 1.2 : 1.65));
+                lastTap.current.time = 0;
+              } else lastTap.current = { time: now, x: event.clientX, y: event.clientY };
+            }
+            drag.current = null;
+            setDragging(false);
+          }}
+          onPointerCancel={() => {
+            drag.current = null;
+            setDragging(false);
+          }}
+          onLostPointerCapture={() => {
+            drag.current = null;
+            setDragging(false);
+          }}
+          onPointerMove={(event) => {
+            if (pinch.current) return;
+            if (drag.current) {
+              const dx = event.clientX - drag.current.x;
+              const dy = event.clientY - drag.current.y;
+              if (
+                !dragged.current &&
+                Math.abs(dx) > 5 &&
+                (event.pointerType === "mouse" || Math.abs(dx) > Math.abs(dy))
+              ) {
+                dragged.current = true;
+                setDragging(true);
+                event.currentTarget.focus({ preventScroll: true });
+                event.currentTarget.setPointerCapture(event.pointerId);
+                setInspection({ id: drag.current.id, chapter });
+                preview(null);
+                onSelect(chapter);
+              }
+              if (dragged.current) {
+                // Unlimited horizontal orbit, with the same gesture sensitivity on every screen.
+                const width = event.currentTarget.clientWidth;
+                pointer.current.orbit =
+                  drag.current.orbit + (dx / Math.max(320, width)) * Math.PI * 1.5;
+                pointer.current.x = 0;
+                pointer.current.y = 0;
+              }
+              return;
+            }
+            if (event.pointerType !== "mouse") return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            pointer.current = {
+              orbit: pointer.current.orbit,
+              x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+              y: ((event.clientY - rect.top) / rect.height) * 2 - 1,
+            };
+          }}
+          onPointerLeave={() => {
+            if (dragged.current && drag.current) return;
+            pointer.current = { x: 0, y: 0, orbit: pointer.current.orbit };
+            drag.current = null;
+            preview(null);
+          }}
+          role="group"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (["ArrowLeft", "ArrowRight"].includes(event.key)) {
+              event.preventDefault();
+              setInspection({ id: null, chapter });
+              preview(null);
+              pointer.current.orbit += event.key === "ArrowLeft" ? -0.18 : 0.18;
+            }
+            if (["+", "=", "-"].includes(event.key)) {
+              event.preventDefault();
+              onSelect(chapter);
+              setZoom((value) =>
+                Math.max(0.75, Math.min(1.65, value + (event.key === "-" ? -0.15 : 0.15))),
+              );
+            }
+            if (event.key === "Home") {
+              event.preventDefault();
+              resetView();
+            }
+          }}
+          aria-label="Interactive campus. Drag to rotate. Pinch or double-click to zoom. After engaging the model, scroll to zoom. Keyboard: arrows to rotate, plus and minus to zoom, Home to reset."
+        >
+          <div
+            className={`dc-poster${ready && !failed ? " dc-poster-hidden" : ""}`}
+            aria-hidden={ready && !failed}
+          >
+            <Image
+              src="/media/campus-poster.png"
+              alt="An architectural cutaway of Meridian’s illustrative data center, with server halls, switchyard, cooling, battery storage, and standby generators."
+              fill
+              sizes="(max-width: 900px) 100vw, 75vw"
+              unoptimized
+            />
+          </div>
+          {near && !failed && (
+            <div className={`dc-webgl${ready ? " dc-webgl-ready" : ""}`} aria-hidden="true">
+              <SceneBoundary onError={onError}>
+                <Scene
+                  selected={selected}
+                  hovered={hovered}
+                  inspected={inspected}
+                  zoom={zoom}
+                  cutaway
+                  dragging={dragging}
+                  markerLock={markerLock}
+                  onHover={(id) => {
+                    if (!drag.current) setHovered(id);
+                  }}
+                  pointer={pointer}
+                  storyProgress={storyProgress}
+                  onSelect={select}
+                  reducedMotion={reducedMotion}
+                  active={active}
+                  markers={markers}
+                  onReady={onReady}
+                  onError={onError}
+                />
+              </SceneBoundary>
+            </div>
+          )}
+          {!failed && (
+            <div
+              className={`dc-hotspots${ready ? "" : " dc-hotspots-pending"}`}
+              aria-hidden={!ready}
+            >
+              {EQUIPMENT.map((equipment, index) => (
+                <button
+                  ref={(node) => {
+                    markers.current[index] = node;
+                  }}
+                  key={equipment.id}
+                  type="button"
+                  className={`dc-hotspot${(inspected ?? hovered ?? selected) === equipment.id ? " dc-hotspot-selected" : ""}`}
+                  tabIndex={ready ? 0 : -1}
+                  aria-label={`Explore ${equipment.name}`}
+                  aria-pressed={selected === equipment.id}
+                  onClick={() => select(equipment.id)}
+                  onPointerEnter={(event) => {
+                    if (event.pointerType === "mouse") {
+                      markerLock.current = {
+                        id: equipment.id,
+                        x: parseFloat(event.currentTarget.style.left),
+                        y: parseFloat(event.currentTarget.style.top),
+                      };
+                      preview(equipment.id);
+                    }
+                  }}
+                  onPointerLeave={() => preview(null)}
+                  onFocus={() => preview(equipment.id)}
+                  onBlur={() => preview(null)}
+                >
+                  <span>{index + 1}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
