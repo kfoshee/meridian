@@ -123,7 +123,6 @@
   aspect-ratio: 1.75;
   max-height: 65svh;
   isolation: isolate;
-  background: radial-gradient(ellipse at 52% 55%, #b69d4609, transparent 65%);
 }
 .dc-poster,
 .dc-webgl {
@@ -341,9 +340,6 @@
 }
 
 /* Quiet controls, with all the visual emphasis on the model. */
-.dc-stage {
-  background: radial-gradient(ellipse at 55% 60%, #b8954810, transparent 66%);
-}
 .dc-stage:active canvas {
   cursor: grabbing;
 }
@@ -549,8 +545,21 @@
 .dc-legend button[aria-pressed="true"] > span {
   border-color: var(--gold);
 }
-.dc-stage {
-  background: radial-gradient(ellipse at 52% 68%, #d4af3710, transparent 66%);
+.dc-stage::before {
+  content: "";
+  position: absolute;
+  inset: -20% 0 -55%;
+  z-index: -1;
+  pointer-events: none;
+  /* Let the halo extend below the canvas and vanish before its own edges. */
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    #d4af3710 0%,
+    #d4af3708 30%,
+    #d4af3703 55%,
+    #d4af3701 75%,
+    #d4af3700 100%
+  );
 }
 .dc-hotspot {
   color: var(--ink);
