@@ -93,7 +93,6 @@ const PIN_STEP = 8,
 type Tally = { hours: number; events: number; week: Window[]; today: string };
 export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
   const root = useRef<HTMLDivElement>(null);
-  const pointerFrame = useRef(0);
   const [running, setRunning] = useState(true);
   const [signal, setSignal] = useState<number | null>(null);
   const [hoverSignal, setHoverSignal] = useState<number | null>(null);
@@ -129,14 +128,8 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
     return () => {
       observer.disconnect();
       document.removeEventListener("visibilitychange", update);
-      cancelAnimationFrame(pointerFrame.current);
     };
   }, []);
-  const resetPointer = () => {
-    cancelAnimationFrame(pointerFrame.current);
-    root.current?.style.removeProperty("--chip-x");
-    root.current?.style.removeProperty("--chip-y");
-  };
   const geo = useMemo(() => {
     const inEnd = narrow ? 320 : 90,
       outEnd = narrow ? 905 : 1010;
@@ -213,7 +206,6 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
           setHoverSignal(null);
           setExpanded(false);
           setPreview(false);
-          resetPointer();
         }
       }}
       className={`die-wrap${on ? " on" : ""}${settled ? " settled" : ""}`}
@@ -354,7 +346,7 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
               ))}
             </g>
 
-            {/* The physical stack follows pointer movement without moving labels or readouts. */}
+            {/* Layers open vertically while the stack stays anchored in place. */}
             <g className="die-body">
               <g
                 className="die-layer"
@@ -519,31 +511,8 @@ export default function Chip({ tally, on }: { tally: Tally; on: boolean }) {
             onPointerEnter={(event) => {
               if (event.pointerType === "mouse") setPreview(true);
             }}
-            onPointerLeave={() => {
-              setPreview(false);
-              resetPointer();
-            }}
-            onPointerCancel={() => {
-              setPreview(false);
-              resetPointer();
-            }}
-            onPointerMove={(event) => {
-              if (event.pointerType !== "mouse") return;
-              const rect = event.currentTarget.getBoundingClientRect();
-              const x = Math.max(
-                -1,
-                Math.min(1, ((event.clientX - rect.left) / rect.width) * 2 - 1),
-              );
-              const y = Math.max(
-                -1,
-                Math.min(1, ((event.clientY - rect.top) / rect.height) * 2 - 1),
-              );
-              cancelAnimationFrame(pointerFrame.current);
-              pointerFrame.current = requestAnimationFrame(() => {
-                root.current?.style.setProperty("--chip-x", `${x * 7}px`);
-                root.current?.style.setProperty("--chip-y", `${y * 4}px`);
-              });
-            }}
+            onPointerLeave={() => setPreview(false)}
+            onPointerCancel={() => setPreview(false)}
             onClick={() => {
               setExpanded((value) => !value);
               setPreview(false);

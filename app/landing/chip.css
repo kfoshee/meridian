@@ -211,10 +211,6 @@
 .die-wrap[data-signal]:not([data-signal=""]) .die-core-cell {
   fill: #d9b975ad;
 }
-.die-wrap .die-body {
-  transform: translate(var(--chip-x, 0px), var(--chip-y, 0px));
-  transition: transform 180ms ease-out;
-}
 .die-explore-label {
   position: absolute;
   bottom: -10px;
@@ -330,10 +326,6 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .die-wrap .die-body {
-    transform: none;
-    transition: none;
-  }
   .die-input-wire {
     transition: none;
   }
