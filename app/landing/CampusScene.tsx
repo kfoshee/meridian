@@ -13,6 +13,7 @@ import {
   EQUIPMENT,
   CAMPUS_PALETTE as BRAND,
   campusView,
+  campusCinematicView,
   campusFitDistance,
   assemblyProgress,
   BUILD_DURATION,
@@ -418,6 +419,7 @@ function World({
   const wantedPosition = useMemo(() => new THREE.Vector3(), []);
   const wantedTarget = useMemo(() => new THREE.Vector3(), []);
   const fittedOffset = useMemo(() => new THREE.Vector3(), []);
+  const storyShot = useMemo(() => campusCinematicView(0), []);
   const config = campusView(inspected ?? selected, inspected !== null);
   const selectedPart = EQUIPMENT.find((item) => item.id === effective);
   const frameCount = useRef(0);
@@ -474,9 +476,16 @@ function World({
     gl.domElement.dataset.view = inspected ?? "story";
     gl.domElement.dataset.zoom = String(zoom);
     gl.domElement.dataset.cutaway = String(cutaway || inspected === "firm" || inspected === "flex");
-    wantedPosition.set(...config.camera);
-    // Keep attention near the system without pushing the rest of the campus offscreen.
-    wantedTarget.set(config.target[0] * 0.3, 0.8, config.target[2] * 0.3);
+    const cinematic =
+      !reducedMotion && !inspected && !dragging && pointer.current.orbit === 0 && selected !== null;
+    if (cinematic) {
+      campusCinematicView(timeline.current / BUILD_DURATION, storyShot);
+      wantedPosition.set(...storyShot.camera);
+      wantedTarget.set(...storyShot.target);
+    } else {
+      wantedPosition.set(...config.camera);
+      wantedTarget.set(config.target[0] * 0.3, 0.8, config.target[2] * 0.3);
+    }
     if (!reducedMotion && !inspected && !dragging) {
       wantedPosition.x += pointer.current.x * 0.8;
       wantedPosition.y += pointer.current.y * 0.4;
@@ -493,7 +502,7 @@ function World({
         size.width / size.height,
         fov,
         framePoints,
-        1.72 - 0.42 * zoom,
+        Math.max(1.03, (1.72 - 0.42 * zoom) * (cinematic ? storyShot.padding / 1.216 : 1)),
       ),
     );
     wantedPosition.add(wantedTarget);

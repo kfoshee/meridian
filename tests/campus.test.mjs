@@ -14,6 +14,7 @@ async function loadSource(name) {
 const {
   chapterFromProgress,
   advanceCampusProgress,
+  campusCinematicView,
   campusView,
   EQUIPMENT,
   assemblyProgress,
@@ -23,6 +24,46 @@ const {
   campusFitDistance,
 } = await loadSource("campus-config");
 const { buildCampus, campusFramingPoints } = await loadSource("campus-geometry");
+
+test("cinematic shots change angle and scale smoothly and settle on the full reveal", () => {
+  const opening = campusCinematicView(0);
+  const grid = campusCinematicView(0.24);
+  assert.ok(opening.padding / grid.padding > 1.3, "opening visibly pushes in");
+  assert.ok(grid.camera[0] < -20, "switchyard is approached from its exposed side");
+  assert.ok(campusCinematicView(0.865).camera[2] < -10, "backup shot reaches the rear");
+  assert.ok(campusCinematicView(1).padding > campusCinematicView(0.955).padding, "final pullback");
+  assert.deepEqual(campusCinematicView(-1), opening);
+  assert.deepEqual(campusCinematicView(2), campusCinematicView(1));
+  for (const p of [0.24, 0.365, 0.49, 0.615, 0.74, 0.865, 0.955]) {
+    const before = campusCinematicView(p - 0.000001);
+    const after = campusCinematicView(p + 0.000001);
+    assert.ok(Math.hypot(...after.camera.map((v, i) => v - before.camera[i])) < 0.001);
+  }
+});
+
+test("cinematic zooms preserve the campus silhouette on phones and desktops", () => {
+  const points = campusFramingPoints(buildCampus());
+  for (const aspect of [0.85, 1.2, 1.5, 2.4])
+    for (let step = 0; step <= 120; step++) {
+      const shot = campusCinematicView(step / 120);
+      const direction = shot.camera.map((v, i) => v - shot.target[i]);
+      const camera = new PerspectiveCamera(30, aspect, 0.1, 220);
+      const distance = campusFitDistance(direction, shot.target, aspect, 30, points, shot.padding);
+      camera.position
+        .fromArray(shot.target)
+        .addScaledVector(new Vector3(...direction).normalize(), distance);
+      camera.lookAt(new Vector3(...shot.target));
+      camera.updateMatrixWorld();
+      for (const point of points) {
+        const projected = new Vector3(...point).project(camera);
+        assert.ok(
+          Math.abs(projected.x) < 1 && Math.abs(projected.y) < 1,
+          `clipped shot ${step}, aspect ${aspect}`,
+        );
+        assert.ok(projected.z > -1 && projected.z < 1);
+      }
+    }
+});
 
 test("chapter lookup clamps outside the section", () => {
   const positions = [-1, 0, 0.25, 0.5, 0.875, 1, 2];

@@ -116,6 +116,50 @@ export function advanceCampusProgress(previous: number, scrollProgress: number):
   return Math.max(previous, Math.max(0, Math.min(1, scrollProgress)));
 }
 
+export type CampusShot = { camera: Vec3; target: Vec3; padding: number };
+
+// Scroll is the editor: each system gets a distinct angle and dolly distance.
+const CAMPUS_SHOTS: {
+  at: number;
+  yaw: number;
+  elevation: number;
+  target: Vec3;
+  padding: number;
+}[] = [
+  { at: 0, yaw: -18, elevation: 42, target: [0, 0.8, 0], padding: 1.42 },
+  { at: 0.24, yaw: -58, elevation: 29, target: [-2.5, 0.8, -1], padding: 1.065 },
+  { at: 0.365, yaw: -34, elevation: 25, target: [-1.8, 0.8, 1], padding: 1.11 },
+  { at: 0.49, yaw: -8, elevation: 49, target: [-1, 1.2, -0.5], padding: 1.04 },
+  { at: 0.615, yaw: 27, elevation: 44, target: [1.4, 1.2, 0], padding: 1.055 },
+  { at: 0.74, yaw: 42, elevation: 25, target: [0, 0.8, 1.6], padding: 1.045 },
+  { at: 0.865, yaw: 118, elevation: 38, target: [0, 1, -1.5], padding: 1.095 },
+  { at: 0.955, yaw: 54, elevation: 27, target: [2, 0.8, 1], padding: 1.04 },
+  { at: 1, yaw: 32, elevation: 34, target: [0, 0.8, 0], padding: 1.19 },
+];
+
+export function campusCinematicView(
+  progress: number,
+  shot: CampusShot = { camera: [0, 0, 0], target: [0, 0, 0], padding: 1 },
+): CampusShot {
+  const p = Math.max(0, Math.min(1, progress));
+  const index = CAMPUS_SHOTS.findIndex((frame) => frame.at >= p);
+  const end = CAMPUS_SHOTS[Math.max(1, index)];
+  const start = CAMPUS_SHOTS[Math.max(0, index - 1)];
+  const t = (p - start.at) / (end.at - start.at);
+  // Quintic easing gives every shot a gentle arrival and departure.
+  const ease = t * t * t * (t * (t * 6 - 15) + 10);
+  const mix = (a: number, b: number) => a + (b - a) * ease;
+  const yaw = (mix(start.yaw, end.yaw) * Math.PI) / 180;
+  const elevation = (mix(start.elevation, end.elevation) * Math.PI) / 180;
+  for (let axis = 0; axis < 3; axis++)
+    shot.target[axis] = mix(start.target[axis], end.target[axis]);
+  shot.camera[0] = shot.target[0] + Math.sin(yaw) * Math.cos(elevation) * 40;
+  shot.camera[1] = shot.target[1] + Math.sin(elevation) * 40;
+  shot.camera[2] = shot.target[2] + Math.cos(yaw) * Math.cos(elevation) * 40;
+  shot.padding = mix(start.padding, end.padding);
+  return shot;
+}
+
 // Buttons reveal the chosen stage; the next deliberate scroll resumes the scroll position.
 export function progressForChapter(chapter: number): number {
   return chapter <= 0 || chapter >= 7 ? 1 : (chapter + 0.96) / 8;
