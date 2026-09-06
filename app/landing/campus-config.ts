@@ -111,6 +111,11 @@ export function chapterFromProgress(progress: number): number {
   return Math.max(1, Math.min(7, Math.floor(progress * 8)));
 }
 
+// Keep assembled equipment in place when the visitor scrolls back through the section.
+export function advanceCampusProgress(previous: number, scrollProgress: number): number {
+  return Math.max(previous, Math.max(0, Math.min(1, scrollProgress)));
+}
+
 // Buttons reveal the chosen stage; the next deliberate scroll resumes the scroll position.
 export function progressForChapter(chapter: number): number {
   return chapter <= 0 || chapter >= 7 ? 1 : (chapter + 0.96) / 8;

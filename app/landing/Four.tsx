@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Campus from "./Campus";
-import { chapterFromProgress } from "./campus-config";
+import { advanceCampusProgress, chapterFromProgress } from "./campus-config";
 import "./campus.css";
 
 export default function Four() {
@@ -14,7 +14,7 @@ export default function Four() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const exploring = useRef(false);
   const onSelect = useCallback((value: number) => {
-    // Exploration keeps the completed campus intact; deliberate scrolling resumes the story.
+    // Exploration completes the campus and keeps it assembled for this page visit.
     storyProgress.current = 1;
     exploring.current = true;
     setChapter(value);
@@ -35,8 +35,10 @@ export default function Four() {
       if (exploring.current) return;
       const rect = element.getBoundingClientRect();
       const progress = Math.max(0, Math.min(1, -rect.top / Math.max(1, rect.height - innerHeight)));
-      storyProgress.current = progress;
-      setChapter(chapterFromProgress(progress));
+      const nextProgress = advanceCampusProgress(storyProgress.current, progress);
+      if (nextProgress === storyProgress.current) return;
+      storyProgress.current = nextProgress;
+      setChapter(chapterFromProgress(nextProgress));
     };
     const scroll = () => {
       if (!frame) frame = requestAnimationFrame(update);

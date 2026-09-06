@@ -13,6 +13,7 @@ async function loadSource(name) {
 }
 const {
   chapterFromProgress,
+  advanceCampusProgress,
   campusView,
   EQUIPMENT,
   assemblyProgress,
@@ -23,10 +24,35 @@ const {
 } = await loadSource("campus-config");
 const { buildCampus, campusFramingPoints } = await loadSource("campus-geometry");
 
-test("scrolling clamps outside the section and reverses through the same chapters", () => {
+test("chapter lookup clamps outside the section", () => {
   const positions = [-1, 0, 0.25, 0.5, 0.875, 1, 2];
   assert.deepEqual(positions.map(chapterFromProgress), [1, 1, 2, 4, 7, 7, 7]);
   assert.deepEqual([...positions].reverse().map(chapterFromProgress), [7, 7, 7, 4, 2, 1, 1]);
+});
+
+test("scrolling back and revisiting the campus never rebuilds completed equipment", () => {
+  let progress = 0;
+  const positions = [-1, 0, 0.35, 0.15, 0, 0.35, 0.7, 1, 2, 0.5, -1, 0.8, 1];
+  const expected = [0, 0, 0.35, 0.35, 0.35, 0.35, 0.7, 1, 1, 1, 1, 1, 1];
+  assert.deepEqual(
+    positions.map((position) => (progress = advanceCampusProgress(progress, position))),
+    expected,
+  );
+  // An equipment interaction can complete the model before the scroll story finishes.
+  assert.equal(advanceCampusProgress(1, 0.2), 1);
+  const campus = buildCampus();
+  for (const [stage, id] of ["site", ...EQUIPMENT.map((item) => item.id)].entries())
+    for (const part of campus[id])
+      assert.equal(
+        assemblyProgress(
+          progress * BUILD_DURATION,
+          stage,
+          part.at[1],
+          part.build.delay,
+          part.build.duration,
+        ),
+        1,
+      );
 });
 
 test("every selectable subsystem has finite geometry, a marker, and a valid selection boundary", () => {
