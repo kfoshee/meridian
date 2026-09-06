@@ -510,9 +510,8 @@
 .dc-stage[data-dragging="true"] canvas {
   cursor: grabbing;
 }
-.dc-stage:focus-visible {
-  outline: 1px solid #d2b777;
-  outline-offset: 3px;
+.dc-stage:focus {
+  outline: none;
 }
 
 @media (min-width: 641px) and (max-width: 900px) {
@@ -585,7 +584,6 @@
 .dc-hotspot::after {
   background: color-mix(in srgb, var(--gold) 45%, transparent);
 }
-.dc-stage:focus-visible,
 .dc-section button:focus-visible {
   outline-color: var(--gold-hi);
 }
