@@ -63,12 +63,12 @@ export default function Four() {
       frame = 0;
       if (motion.matches || mobile.matches) {
         storyProgress.current = 1;
-        if (!exploring.current) setChapter(7);
+        if (!exploring.current) setChapter(0);
         compactStory();
         return;
       }
       if (storyProgress.current >= 1) {
-        if (!exploring.current) setChapter(7);
+        if (!exploring.current) setChapter(0);
         compactStory();
         return;
       }

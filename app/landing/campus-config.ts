@@ -108,6 +108,8 @@ export function campusView(
 }
 
 export function chapterFromProgress(progress: number): number {
+  // Completion returns to the overview; equipment focus is then a visitor's choice.
+  if (progress >= 1) return 0;
   return Math.max(1, Math.min(7, Math.floor(progress * 8)));
 }
 

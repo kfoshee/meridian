@@ -103,10 +103,15 @@ test("cinematic zooms preserve the campus silhouette on phones and desktops", ()
     }
 });
 
-test("chapter lookup clamps outside the section", () => {
+test("scroll chapters end in an unselected overview", () => {
   const positions = [-1, 0, 0.25, 0.5, 0.875, 1, 2];
-  assert.deepEqual(positions.map(chapterFromProgress), [1, 1, 2, 4, 7, 7, 7]);
-  assert.deepEqual([...positions].reverse().map(chapterFromProgress), [7, 7, 7, 4, 2, 1, 1]);
+  assert.deepEqual(positions.map(chapterFromProgress), [1, 1, 2, 4, 7, 0, 0]);
+  assert.deepEqual([...positions].reverse().map(chapterFromProgress), [0, 0, 7, 4, 2, 1, 1]);
+  for (const scroll of [0.8, 0.3, 0, 1, 2]) {
+    const retained = advanceCampusProgress(1, scroll);
+    assert.equal(chapterFromProgress(retained), 0);
+    assert.equal(EQUIPMENT[chapterFromProgress(retained) - 1], undefined);
+  }
 });
 
 test("scrolling back and revisiting the campus never rebuilds completed equipment", () => {
