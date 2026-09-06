@@ -132,11 +132,13 @@
 .dc-poster img {
   object-fit: contain;
 }
-.dc-poster {
-  transition: opacity 0.5s;
-}
-.dc-poster-hidden {
-  opacity: 0;
+.dc-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
   pointer-events: none;
 }
 .dc-webgl {

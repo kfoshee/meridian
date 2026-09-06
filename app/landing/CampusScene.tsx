@@ -14,6 +14,7 @@ import {
   CAMPUS_PALETTE as BRAND,
   campusView,
   campusCinematicView,
+  campusPlayback,
   campusFitDistance,
   assemblyProgress,
   BUILD_DURATION,
@@ -107,7 +108,7 @@ function Batch({
   id,
   timeline,
   highlighted,
-  reducedMotion,
+  animate,
   cutaway,
   onSelect,
   onHover,
@@ -118,7 +119,7 @@ function Batch({
   id: EquipmentId | "site";
   timeline: RefObject<number>;
   highlighted: boolean;
-  reducedMotion: boolean;
+  animate: boolean;
   cutaway: boolean;
   onSelect: SceneProps["onSelect"];
   onHover: SceneProps["onHover"];
@@ -135,14 +136,17 @@ function Batch({
   useFrame((_, delta) => {
     if (!mesh.current) return;
 
-    if (!reducedMotion && hasFans)
-      fanAngle.current += Math.min(delta, 0.05) * (highlighted ? 4 : 1.2);
+    if (animate && hasFans) fanAngle.current += Math.min(delta, 0.05) * (highlighted ? 4 : 1.2);
     if (lastPosition.current !== timeline.current || hasFans) {
       items.forEach((part, i) => {
         const build = part.build;
-        const t = reducedMotion
-          ? 1
-          : assemblyProgress(timeline.current, order, part.at[1], build?.delay, build?.duration);
+        const t = assemblyProgress(
+          timeline.current,
+          order,
+          part.at[1],
+          build?.delay,
+          build?.duration,
+        );
         const offset = build?.offset ?? [0, 1, 0];
         object.position.set(
           part.at[0] + offset[0] * (1 - t),
@@ -165,7 +169,7 @@ function Batch({
       mesh.current.instanceMatrix.needsUpdate = true;
       lastPosition.current = timeline.current;
     }
-    const k = reducedMotion ? 1 : 1 - Math.exp(-Math.min(delta, 0.05) * 7);
+    const k = animate ? 1 - Math.exp(-Math.min(delta, 0.05) * 7) : 1;
     mesh.current.position.y = THREE.MathUtils.lerp(
       mesh.current.position.y,
       cover && cutaway ? 1.3 : 0,
@@ -456,14 +460,15 @@ function World({
 
   useFrame((_, delta) => {
     const k = reducedMotion || !active ? 1 : 1 - Math.exp(-Math.min(delta, 0.05) * 4.2);
-    const target = reducedMotion ? BUILD_DURATION : storyProgress.current * BUILD_DURATION;
+    const playback = campusPlayback(storyProgress.current, reducedMotion, active);
+    const target = playback.position;
     timeline.current =
-      Math.abs(target - timeline.current) < 0.001
+      !ready.current || Math.abs(target - timeline.current) < 0.001
         ? target
         : THREE.MathUtils.lerp(
             timeline.current,
             target,
-            reducedMotion || !active ? 1 : 1 - Math.exp(-Math.min(delta, 0.05) * 12),
+            playback.animate ? 1 - Math.exp(-Math.min(delta, 0.05) * 12) : 1,
           );
     // Cache fixed architectural shadows once assembly and roof transitions settle.
     // Fans are small enough to retain their stationary shadows during inspection.
@@ -595,7 +600,7 @@ function World({
       }
     }
     if (active && (!reducedMotion || frameCount.current < 4)) invalidate();
-  });
+  }, -1);
 
   return (
     <>
@@ -651,7 +656,7 @@ function World({
           timeline={timeline}
           highlighted={batch.id === effective}
           cutaway={cutaway || inspected === "firm" || inspected === "flex"}
-          reducedMotion={reducedMotion || !active}
+          animate={active && !reducedMotion}
           onSelect={onSelect}
           onHover={onHover}
         />
@@ -689,6 +694,11 @@ function World({
   );
 }
 
+function GraphicsFallback({ onError }: { onError: () => void }) {
+  useEffect(() => onError(), [onError]);
+  return null;
+}
+
 export default function CampusScene(props: SceneProps) {
   const [contextLost, setContextLost] = useState(false);
   const canvas = useRef<HTMLCanvasElement | null>(null);
@@ -712,7 +722,7 @@ export default function CampusScene(props: SceneProps) {
       frameloop="demand"
       camera={{ position: [24, 24, 30], fov: 30, near: 0.1, far: 220 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-      fallback={null}
+      fallback={<GraphicsFallback onError={onError} />}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.04;

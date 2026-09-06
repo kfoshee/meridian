@@ -15,6 +15,7 @@ const {
   chapterFromProgress,
   advanceCampusProgress,
   campusCinematicView,
+  campusPlayback,
   campusView,
   EQUIPMENT,
   assemblyProgress,
@@ -24,6 +25,21 @@ const {
   campusFitDistance,
 } = await loadSource("campus-config");
 const { buildCampus, campusFramingPoints } = await loadSource("campus-geometry");
+
+test("preloading and visibility changes preserve the actual construction stage", () => {
+  for (const progress of [0, 0.12, 0.4, 1]) {
+    const hidden = campusPlayback(progress, false, false);
+    const visible = campusPlayback(progress, false, true);
+    assert.equal(hidden.position, visible.position);
+    assert.equal(hidden.animate, false);
+    assert.equal(visible.animate, true);
+    assert.equal(campusPlayback(progress, false, false).position, hidden.position);
+  }
+  const preload = campusPlayback(0, false, false);
+  assert.equal(assemblyProgress(preload.position, 1), 0, "preloading must not assemble equipment");
+  assert.equal(campusPlayback(1, false, false).position, BUILD_DURATION);
+  assert.deepEqual(campusPlayback(0, true, true), { position: BUILD_DURATION, animate: false });
+});
 
 test("cinematic shots change angle and scale smoothly and settle on the full reveal", () => {
   const opening = campusCinematicView(0);

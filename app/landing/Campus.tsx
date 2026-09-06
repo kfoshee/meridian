@@ -330,18 +330,22 @@ export default function Campus({
           }}
           aria-label="Interactive campus. Drag to rotate. Pinch or double-click to zoom. After engaging the model, scroll to zoom. Keyboard: arrows to rotate, plus and minus to zoom, Home to reset."
         >
-          <div
-            className={`dc-poster${ready && !failed ? " dc-poster-hidden" : ""}`}
-            aria-hidden={ready && !failed}
-          >
-            <Image
-              src="/media/campus-poster.png"
-              alt="An architectural cutaway of Meridian’s illustrative data center, with server halls, switchyard, cooling, battery storage, and standby generators."
-              fill
-              sizes="(max-width: 900px) 100vw, 75vw"
-              unoptimized
-            />
-          </div>
+          {failed && (
+            <div className="dc-poster">
+              <Image
+                src="/media/campus-poster.png"
+                alt="An architectural cutaway of Meridian’s illustrative data center, with server halls, switchyard, cooling, battery storage, and standby generators."
+                fill
+                sizes="(max-width: 900px) 100vw, 75vw"
+                unoptimized
+              />
+            </div>
+          )}
+          {!ready && !failed && (
+            <div className="dc-loading" role="status">
+              Loading campus…
+            </div>
+          )}
           {near && !failed && (
             <div className={`dc-webgl${ready ? " dc-webgl-ready" : ""}`} aria-hidden="true">
               <SceneBoundary onError={onError}>

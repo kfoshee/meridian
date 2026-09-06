@@ -167,6 +167,14 @@ export function progressForChapter(chapter: number): number {
 
 // Timeline units represent stages, never elapsed time: foundation + seven systems.
 export const BUILD_DURATION = 8;
+
+export function campusPlayback(progress: number, reducedMotion: boolean, active: boolean) {
+  return {
+    position: (reducedMotion ? 1 : Math.max(0, Math.min(1, progress))) * BUILD_DURATION,
+    animate: active && !reducedMotion,
+  };
+}
+
 export function assemblyProgress(
   position: number,
   group: number,
