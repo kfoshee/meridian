@@ -589,3 +589,13 @@
 .dc-section button:focus-visible {
   outline-color: var(--gold-hi);
 }
+
+/* Once built, the campus occupies a normal section instead of five scroll screens. */
+.dc-section[data-complete="true"] {
+  height: auto;
+}
+.dc-section[data-complete="true"] .dc-sticky {
+  position: relative;
+  height: auto;
+  min-height: 100svh;
+}

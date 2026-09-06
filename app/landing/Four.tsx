@@ -1,7 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Campus from "./Campus";
-import { advanceCampusProgress, chapterFromProgress } from "./campus-config";
+import {
+  advanceCampusProgress,
+  campusScrollAfterCollapse,
+  chapterFromProgress,
+} from "./campus-config";
 import "./campus.css";
 
 export default function Four() {
@@ -13,12 +17,41 @@ export default function Four() {
   const [visible, setVisible] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const exploring = useRef(false);
-  const onSelect = useCallback((value: number) => {
-    // Exploration completes the campus and keeps it assembled for this page visit.
-    storyProgress.current = 1;
-    exploring.current = true;
-    setChapter(value);
+  const compact = useRef(false);
+  const compensatedScroll = useRef<number | null>(null);
+  const compactStory = useCallback(() => {
+    const element = section.current;
+    if (!element || compact.current) return;
+    const before = element.getBoundingClientRect();
+    const previousScroll = window.scrollY;
+    const sectionTop = before.top + previousScroll;
+    compact.current = true;
+    element.dataset.complete = "true";
+    const afterHeight = element.getBoundingClientRect().height;
+    const nextScroll = campusScrollAfterCollapse(
+      previousScroll,
+      sectionTop,
+      before.height,
+      afterHeight,
+    );
+    const boundedScroll = Math.max(
+      0,
+      Math.min(nextScroll, document.documentElement.scrollHeight - innerHeight),
+    );
+    // Keep the pinned campus (or the following content) at the same viewport position.
+    compensatedScroll.current = boundedScroll;
+    window.scrollTo({ top: boundedScroll, behavior: "instant" });
   }, []);
+  const onSelect = useCallback(
+    (value: number) => {
+      // Exploration completes the campus and keeps it assembled for this page visit.
+      storyProgress.current = 1;
+      exploring.current = true;
+      setChapter(value);
+      compactStory();
+    },
+    [compactStory],
+  );
 
   useEffect(() => {
     const element = section.current;
@@ -30,6 +63,13 @@ export default function Four() {
       frame = 0;
       if (motion.matches || mobile.matches) {
         storyProgress.current = 1;
+        if (!exploring.current) setChapter(7);
+        compactStory();
+        return;
+      }
+      if (storyProgress.current >= 1) {
+        if (!exploring.current) setChapter(7);
+        compactStory();
         return;
       }
       if (exploring.current) return;
@@ -39,9 +79,17 @@ export default function Four() {
       if (nextProgress === storyProgress.current) return;
       storyProgress.current = nextProgress;
       setChapter(chapterFromProgress(nextProgress));
+      if (nextProgress >= 1) compactStory();
     };
     const scroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
+    };
+    const pageScroll = () => {
+      const compensated = compensatedScroll.current;
+      compensatedScroll.current = null;
+      if (compensated !== null && Math.abs(window.scrollY - compensated) < 2) return;
+      exploring.current = false;
+      scroll();
     };
     // Focus, resize and browser scroll-into-view must not restart construction during inspection.
     const resume = () => {
@@ -97,7 +145,7 @@ export default function Four() {
     });
     motion.addEventListener("change", preferences);
     mobile.addEventListener("change", preferences);
-    addEventListener("scroll", scroll, { passive: true });
+    addEventListener("scroll", pageScroll, { passive: true });
     addEventListener("wheel", resume, { passive: true });
     addEventListener("keydown", resumeKeys);
     addEventListener("touchstart", touchBegin, { passive: true });
@@ -111,7 +159,7 @@ export default function Four() {
       cancelAnimationFrame(frame);
       motion.removeEventListener("change", preferences);
       mobile.removeEventListener("change", preferences);
-      removeEventListener("scroll", scroll);
+      removeEventListener("scroll", pageScroll);
       removeEventListener("wheel", resume);
       removeEventListener("keydown", resumeKeys);
       removeEventListener("touchstart", touchBegin);
@@ -119,7 +167,7 @@ export default function Four() {
       removeEventListener("resize", scroll);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, []);
+  }, [compactStory]);
 
   return (
     <section id="campus" ref={section} className="dc-section" aria-labelledby="dc-title">

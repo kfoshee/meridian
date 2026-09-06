@@ -116,6 +116,16 @@ export function advanceCampusProgress(previous: number, scrollProgress: number):
   return Math.max(previous, Math.max(0, Math.min(1, scrollProgress)));
 }
 
+export function campusScrollAfterCollapse(
+  scrollY: number,
+  sectionTop: number,
+  previousHeight: number,
+  compactHeight: number,
+): number {
+  const removed = Math.max(0, previousHeight - compactHeight);
+  return scrollY - Math.min(removed, Math.max(0, scrollY - sectionTop));
+}
+
 export type CampusShot = { camera: Vec3; target: Vec3; padding: number };
 
 // Scroll is the editor: each system gets a distinct angle and dolly distance.

@@ -14,6 +14,7 @@ async function loadSource(name) {
 const {
   chapterFromProgress,
   advanceCampusProgress,
+  campusScrollAfterCollapse,
   campusCinematicView,
   campusPlayback,
   campusView,
@@ -25,6 +26,27 @@ const {
   campusFitDistance,
 } = await loadSource("campus-config");
 const { buildCampus, campusFramingPoints } = await loadSource("campus-geometry");
+
+test("collapsing the completed scroll track preserves the visible content position", () => {
+  const sectionTop = 2000;
+  const previousHeight = 5000;
+  const compactHeight = 1000;
+  // Above the section, nothing moves; inside it, the pinned scene stays at the top.
+  assert.equal(campusScrollAfterCollapse(500, sectionTop, previousHeight, compactHeight), 500);
+  assert.equal(
+    campusScrollAfterCollapse(3500, sectionTop, previousHeight, compactHeight),
+    sectionTop,
+  );
+  assert.equal(
+    campusScrollAfterCollapse(6000, sectionTop, previousHeight, compactHeight),
+    sectionTop,
+  );
+  // Past the section, remove exactly the discarded runway above the viewport.
+  const afterScroll = campusScrollAfterCollapse(7400, sectionTop, previousHeight, compactHeight);
+  assert.equal(sectionTop + previousHeight - 7400, sectionTop + compactHeight - afterScroll);
+  assert.equal(campusScrollAfterCollapse(7400, sectionTop, compactHeight, compactHeight), 7400);
+  assert.equal(campusScrollAfterCollapse(7400, sectionTop, 800, compactHeight), 7400);
+});
 
 test("preloading and visibility changes preserve the actual construction stage", () => {
   for (const progress of [0, 0.12, 0.4, 1]) {
