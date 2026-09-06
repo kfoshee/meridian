@@ -694,11 +694,6 @@ function World({
   );
 }
 
-function GraphicsFallback({ onError }: { onError: () => void }) {
-  useEffect(() => onError(), [onError]);
-  return null;
-}
-
 export default function CampusScene(props: SceneProps) {
   const [contextLost, setContextLost] = useState(false);
   const canvas = useRef<HTMLCanvasElement | null>(null);
@@ -722,7 +717,7 @@ export default function CampusScene(props: SceneProps) {
       frameloop="demand"
       camera={{ position: [24, 24, 30], fov: 30, near: 0.1, far: 220 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-      fallback={<GraphicsFallback onError={onError} />}
+      fallback={null}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.04;

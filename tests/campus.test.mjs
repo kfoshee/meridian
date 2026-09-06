@@ -331,3 +331,78 @@ test("tight framing contains the actual equipment at full gesture zoom", () => {
       }
     }
 });
+
+// Exercise the real wrapper's mount effects without a browser/GPU. Fiber mounts its
+// fallback as canvas DOM children even when graphics work; it is not an error callback.
+async function mountSceneWrapper(source) {
+  const parsed = ts.createSourceFile(
+    "CampusScene.tsx",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const declarations = parsed.statements
+    .filter((node) => ts.isFunctionDeclaration(node) && node.name?.text !== "World")
+    .map((node) => node.getText(parsed).replace(/^export default /, ""))
+    .join("\n");
+  const { outputText } = ts.transpileModule(declarations, {
+    compilerOptions: {
+      jsx: ts.JsxEmit.React,
+      target: ts.ScriptTarget.ES2020,
+      module: ts.ModuleKind.None,
+    },
+  });
+  const effects = [];
+  const events = new Map();
+  let errors = 0;
+  const canvas = {
+    addEventListener: (type, handler) => events.set(type, handler),
+    removeEventListener: (type) => events.delete(type),
+  };
+  const React = {
+    createElement: (type, props, ...children) => ({ type, props: { ...props, children } }),
+  };
+  const Component = new Function(
+    "React",
+    "useEffect",
+    "useState",
+    "useRef",
+    "Canvas",
+    "Suspense",
+    "World",
+    `${outputText}\nreturn CampusScene;`,
+  )(
+    React,
+    (effect) => effects.push(effect),
+    (initial) => [initial, () => {}],
+    () => ({ current: canvas }),
+    "canvas-wrapper",
+    "suspense",
+    "scene-world",
+  );
+  const tree = Component({ onError: () => errors++ });
+  function mountFallback(node) {
+    if (node && typeof node.type === "function") mountFallback(node.type(node.props));
+    else if (node) node.props.children?.forEach(mountFallback);
+  }
+  mountFallback(tree.props.fallback);
+  const cleanup = effects.map((effect) => effect());
+  return { errors: () => errors, events, cleanup: () => cleanup.forEach((fn) => fn?.()) };
+}
+
+test("a healthy canvas mount never invokes the graphics-error callback", async () => {
+  const source = await readFile(new URL("../app/landing/CampusScene.tsx", import.meta.url), "utf8");
+  const scene = await mountSceneWrapper(source);
+  assert.equal(scene.errors(), 0, "mounting normal canvas children must not disable the 3D scene");
+  let prevented = false;
+  scene.events.get("webglcontextlost")({
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
+  assert.equal(prevented, true);
+  assert.equal(scene.errors(), 1, "actual graphics loss still invokes the fallback");
+  scene.cleanup();
+  assert.equal(scene.events.size, 0);
+});
