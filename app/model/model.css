@@ -140,11 +140,119 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.mf-chart-head > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.mf-chart-head i {
+  width: 6px;
+  height: 6px;
+  display: inline-block;
+  border-radius: 50%;
+  background: #75c985;
+  box-shadow: 0 0 0 0 #75c98566;
+  animation: mf-live-status 2.2s ease-out infinite;
+}
+.mf-chart-head i.is-offline {
+  background: #9c927c;
+  box-shadow: none;
+  animation: none;
+}
 .mf-chart svg {
   width: 100%;
   height: auto;
   display: block;
   margin-top: 10px;
+}
+.mf-live-value {
+  margin: 24px 0 -36px 20px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  column-gap: 9px;
+  position: relative;
+  z-index: 1;
+}
+.mf-live-value strong {
+  color: var(--ink);
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 350;
+  letter-spacing: -0.045em;
+}
+.mf-live-value > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+.mf-live-value em {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: var(--gold-hi);
+  font-size: 9px;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mf-live-area {
+  fill: url(#mf-live-area);
+  opacity: 0;
+  animation: mf-live-fill 900ms ease 300ms forwards;
+}
+.mf-live-line {
+  fill: none;
+  stroke: var(--gold-hi);
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: mf-live-draw 1600ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
+}
+.mf-live-point-ring {
+  fill: none;
+  stroke: var(--gold-hi);
+  stroke-width: 1.5;
+  opacity: 0;
+  animation: mf-live-ring 2.2s ease-out infinite;
+}
+.mf-live-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #756d5d;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@keyframes mf-live-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes mf-live-fill {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mf-live-ring {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.5);
+  }
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+@keyframes mf-live-status {
+  0% {
+    box-shadow: 0 0 0 0 #75c98566;
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px #75c98500;
+  }
 }
 .mf-grid {
   stroke: #252119;
@@ -380,6 +488,21 @@
   50% {
     transform: scale(1.55);
     filter: drop-shadow(0 0 7px #d4af37aa);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-chart-head i,
+  .mf-live-area,
+  .mf-live-line,
+  .mf-live-point-ring {
+    animation: none;
+  }
+  .mf-live-area {
+    opacity: 1;
+  }
+  .mf-live-line {
+    stroke-dashoffset: 0;
   }
 }
 

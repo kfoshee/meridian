@@ -7,6 +7,20 @@ import ProviderContact from "./ProviderContact";
 
 type EvidenceKey = "ordinary" | "hourly" | "path" | "warning" | "coverage";
 
+type PublicGridPoint = { at: number; prc_mw: number };
+type PublicGridFeed = {
+  schema: "meridian.public.ercot-prc.v1";
+  status: "live" | "unavailable";
+  updated_at?: string;
+  current?: {
+    prc_mw: number;
+    state: string | null;
+    title: string | null;
+    note: string | null;
+  };
+  points?: PublicGridPoint[];
+};
+
 const evidenceOrder: EvidenceKey[] = ["coverage", "warning", "path", "hourly", "ordinary"];
 
 type EvidenceMetric = {
@@ -88,18 +102,89 @@ const evidence = {
   },
 } satisfies Record<EvidenceKey, EvidenceMetric>;
 
-function ForecastChart() {
+const PUBLIC_GRID_FEED = "https://meridian-public-feed.vercel.app/api/grid";
+
+function LiveGridChart() {
+  const [feed, setFeed] = useState<PublicGridFeed | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const refresh = async () => {
+      try {
+        const response = await fetch(PUBLIC_GRID_FEED, { cache: "no-store" });
+        if (!response.ok) throw new Error("Grid feed unavailable");
+        const next = (await response.json()) as PublicGridFeed;
+        if (
+          next.schema !== "meridian.public.ercot-prc.v1" ||
+          next.status !== "live" ||
+          !Array.isArray(next.points) ||
+          next.points.length < 2
+        ) {
+          throw new Error("Grid feed failed validation");
+        }
+        if (active) {
+          setFeed(next);
+          setFailed(false);
+        }
+      } catch {
+        if (active) setFailed(true);
+      }
+    };
+
+    void refresh();
+    const timer = window.setInterval(refresh, 60_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const points = feed?.points ?? [];
+  const values = points.map((point) => point.prc_mw);
+  const low = values.length ? Math.min(...values) : 0;
+  const high = values.length ? Math.max(...values) : 1;
+  const spread = Math.max(high - low, 1);
+  const path = points
+    .map((point, index) => {
+      const x = 42 + (index / Math.max(points.length - 1, 1)) * 654;
+      const y = 250 - ((point.prc_mw - low) / spread) * 150;
+      return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ");
+  const lastPoint = points.at(-1);
+  const lastY = lastPoint ? 250 - ((lastPoint.prc_mw - low) / spread) * 150 : 175;
+  const updated = feed?.updated_at
+    ? new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "America/Chicago",
+        timeZoneName: "short",
+      }).format(new Date(feed.updated_at))
+    : null;
+
   return (
-    <div className="mf-chart" aria-label="Illustrative seven-day grid constraint forecast">
+    <div
+      className="mf-chart mf-live-chart"
+      aria-label="Live ERCOT reported Physical Responsive Capability over the last six hours"
+    >
       <div className="mf-chart-head">
-        <span>Constraint outlook</span>
-        <span>Now → 168h</span>
+        <span>
+          <i className={failed ? "is-offline" : ""} /> Live ERCOT grid state
+        </span>
+        <span>{updated ?? (failed ? "Unavailable" : "Connecting…")}</span>
       </div>
-      <svg viewBox="0 0 720 330" role="img" aria-label="Forecast path and uncertainty range">
+      <div className="mf-live-value">
+        <strong>{feed?.current?.prc_mw?.toLocaleString("en-US") ?? "—"}</strong>
+        <span>MW reported PRC</span>
+        <em>{feed?.current?.title ?? (failed ? "Feed unavailable" : "Loading live signal")}</em>
+      </div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="Six-hour reported PRC trend">
         <defs>
-          <linearGradient id="mf-band" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#d4af37" stopOpacity=".3" />
-            <stop offset="1" stopColor="#d4af37" stopOpacity=".02" />
+          <linearGradient id="mf-live-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#d4af37" stopOpacity=".28" />
+            <stop offset="1" stopColor="#d4af37" stopOpacity="0" />
           </linearGradient>
           <filter id="mf-glow" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="4" result="blur" />
@@ -109,58 +194,27 @@ function ForecastChart() {
             </feMerge>
           </filter>
         </defs>
-        {[62, 126, 190, 254].map((y) => (
+        {[70, 130, 190, 250].map((y) => (
           <line key={y} x1="42" x2="696" y1={y} y2={y} className="mf-grid" />
         ))}
-        <line x1="42" x2="696" y1="218" y2="218" className="mf-threshold" />
-        <text x="48" y="210" className="mf-label">
-          CONSTRAINED
+        {path ? <path className="mf-live-area" d={`${path} L696 250 L42 250 Z`} /> : null}
+        {path ? <path className="mf-live-line" filter="url(#mf-glow)" d={path} /> : null}
+        {lastPoint ? (
+          <g className="mf-live-point" transform={`translate(696 ${lastY.toFixed(1)})`}>
+            <circle r="10" className="mf-live-point-ring" />
+            <circle r="4" className="mf-point" />
+          </g>
+        ) : null}
+        <text x="42" y="282" className="mf-label">
+          6 HOURS AGO
         </text>
-        <path
-          className="mf-band-wide"
-          d="M42 75 C110 72 145 91 202 99 C258 107 302 128 345 175 C393 228 430 286 490 270 C547 254 582 178 628 140 C660 114 678 106 696 104 L696 175 C670 182 650 196 628 222 C581 275 547 310 490 314 C429 318 393 292 345 245 C302 202 258 170 202 155 C145 139 105 132 42 128 Z"
-        />
-        <path
-          className="mf-band-core"
-          d="M42 92 C109 88 148 105 202 116 C256 127 303 149 345 193 C393 244 431 275 490 261 C547 248 582 190 628 158 C661 135 680 128 696 126 L696 154 C680 158 660 167 628 190 C581 225 547 278 490 289 C431 301 392 272 345 222 C302 177 256 151 202 138 C147 125 108 113 42 116 Z"
-        />
-        <path
-          className="mf-median"
-          filter="url(#mf-glow)"
-          d="M42 105 C110 102 147 114 202 126 C257 138 302 161 345 207 C392 258 430 287 490 276 C548 265 582 209 628 176 C660 153 679 143 696 142"
-        />
-        <line x1="374" x2="374" y1="48" y2="292" className="mf-event" />
-        <line x1="576" x2="576" y1="48" y2="292" className="mf-event" />
-        <text x="384" y="47" className="mf-label">
-          ONSET
-        </text>
-        <text x="586" y="47" className="mf-label">
-          RECOVERY
-        </text>
-        <circle cx="374" cy="235" r="4" className="mf-point" />
-        <circle cx="576" cy="214" r="4" className="mf-point" />
-        <text x="42" y="318" className="mf-label">
+        <text x="696" y="282" textAnchor="end" className="mf-label">
           NOW
         </text>
-        <text x="229" y="318" className="mf-label">
-          +48H
-        </text>
-        <text x="438" y="318" className="mf-label">
-          +96H
-        </text>
-        <text x="696" y="318" textAnchor="end" className="mf-label">
-          +168H
-        </text>
       </svg>
-      <div className="mf-legend">
-        <span>
-          <i className="line" />
-          Forecast
-        </span>
-        <span>
-          <i className="band" />
-          Possible futures
-        </span>
+      <div className="mf-live-foot">
+        <span>Public ERCOT data</span>
+        <span>Not a Zenith forecast</span>
       </div>
     </div>
   );
@@ -365,7 +419,7 @@ export default function ModelExplorer() {
             </span>
           </div>
         </div>
-        <ForecastChart />
+        <LiveGridChart />
       </section>
 
       <section className="mf-questions mf-reveal" aria-labelledby="mf-questions-title">
