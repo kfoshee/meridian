@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import ModelExplorer from "./ModelExplorer";
-import snapshot from "./snapshot.json";
 import "./model.css";
 
 export const metadata: Metadata = {
-  title: "Texas model · Meridian",
+  title: "Zenith · Meridian",
   description:
-    "Meridian's Texas research model: forecast, model internals, and software architecture.",
+    "Zenith is Meridian's probabilistic Texas grid-tightness research model, benchmarked across 1,096 historical forecast origins.",
 };
 
 export default function Page() {
-  return <ModelExplorer snapshot={snapshot} />;
+  return <ModelExplorer />;
 }
