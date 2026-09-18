@@ -84,10 +84,10 @@
 }
 .mf-development {
   display: block;
-  margin-bottom: 18px;
-  color: var(--gold-hi);
-  font-size: 12px;
-  letter-spacing: 0.14em;
+  margin-bottom: 14px;
+  color: #716a5b;
+  font-size: 9px;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
@@ -214,15 +214,6 @@
   stroke-width: 1.5;
   opacity: 0;
   animation: mf-live-ring 2.2s ease-out infinite;
-}
-.mf-live-foot {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  color: #756d5d;
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 @keyframes mf-live-draw {
   to {

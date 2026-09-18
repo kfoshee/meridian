@@ -167,11 +167,11 @@ function LiveGridChart() {
   return (
     <div
       className="mf-chart mf-live-chart"
-      aria-label="Live ERCOT reported Physical Responsive Capability over the last six hours"
+      aria-label="Live reported Physical Responsive Capability over the last six hours"
     >
       <div className="mf-chart-head">
         <span>
-          <i className={failed ? "is-offline" : ""} /> Live ERCOT grid state
+          <i className={failed ? "is-offline" : ""} /> Zenith live
         </span>
         <span>{updated ?? (failed ? "Unavailable" : "Connecting…")}</span>
       </div>
@@ -212,10 +212,6 @@ function LiveGridChart() {
           NOW
         </text>
       </svg>
-      <div className="mf-live-foot">
-        <span>Public ERCOT data</span>
-        <span>Not a Zenith forecast</span>
-      </div>
     </div>
   );
 }
