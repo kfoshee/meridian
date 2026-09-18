@@ -402,7 +402,7 @@ export default function ModelExplorer() {
         <div className="mf-copy">
           <span className="mf-development">Still in development</span>
           <h1>Zenith</h1>
-          <p>Probabilistic Texas grid-tightness forecasting.</p>
+          <p>Frontier probabilistic Texas grid-tightness forecasting.</p>
           <div className="mf-stats">
             <span>
               <strong>168h</strong> horizon
