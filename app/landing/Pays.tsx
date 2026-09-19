@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Where, { readPlace, type Place } from "./Where";
-import { FLEX_SHARE, PROGRAMS, applied } from "./programs";
+import { FLEX_SHARE, PROGRAMS, applied, type Program } from "./programs";
 
 // Flexibility pays. Where is the site, how big is it; Meridian says how much can step aside and what that earns.
 const SIZES = [50, 100, 200, 500];
@@ -34,8 +34,11 @@ export default function Pays() {
 
   const pickTyped = () => { const v = Math.round(Number(typed)); if (v > 0 && v <= 5000) { setSize(v); } };
   const flex = size == null ? 0 : Math.round(size * SHARE);
-  const pr = PROGRAMS[place?.program ?? "ERCOT"];
-  const market = place?.program === "LADWP" ? "LADWP" : place?.program === "CAISO" ? "CAISO" : "ERCOT";
+  // Texas only, so every program is an ERCOT one. A place saved before that (California) is no
+  // longer in PROGRAMS, so it falls back rather than indexing to undefined.
+  const program = (place && PROGRAMS[place.program] ? place.program : "ERCOT") as Program;
+  const pr = PROGRAMS[program];
+  const market = "ERCOT";
 
   return (
     <section ref={sec} className={`pays${on ? " on" : ""}${place ? " placed" : ""}${size != null ? " sized" : ""}`}>
@@ -64,7 +67,7 @@ export default function Pays() {
           <div className="pays-total"><b>{A.text}</b><span>{A.after} from {market}</span></div>
         </>); })() : <div className="pays-total"><b>Not priced yet</b></div>}
         <div className="pays-links">
-          <Link href={`/estimate/?program=${encodeURIComponent(place?.program ?? "ERCOT")}&mw=${size ?? ""}&place=${encodeURIComponent(place?.label ?? "")}`} className="pays-link dim">How this is calculated</Link>
+          <Link href={`/estimate/?program=${encodeURIComponent(program)}&mw=${size ?? ""}&place=${encodeURIComponent(place?.label ?? "")}`} className="pays-link dim">How this is calculated</Link>
           {pr.model && <Link href="/model/" className="pays-link">See the model for {(place?.label ?? "your site").replace(/^near /, "")}</Link>}
         </div>
       </div>

@@ -2,7 +2,7 @@
 // (registry version 1, 16 streams). Do not edit by hand; edit the registry and regenerate.
 // Rules carried over from the registry: streams are never summed, and monthly or hourly rates are never
 // multiplied into a season or a year. Each rate keeps the unit and period the program document states.
-export type Program = "Oncor" | "CenterPoint" | "AEP Texas" | "TNMP" | "ERCOT" | "LADWP" | "CAISO";
+export type Program = "Oncor" | "CenterPoint" | "AEP Texas" | "TNMP" | "ERCOT";
 export type Stream = {
   rate: [number, number];                              // low–high as published; equal when a single rate
   unit: string;                                        // the published unit, e.g. "per MW a year"
@@ -196,50 +196,6 @@ export const PROGRAMS: Record<Program, ProgramRates> = {
     "priced": true,
     "model": true,
     "note": "4CP across the four Texas utilities, PUCT rate reports 2026 · ERS and reserves as cleared, 2025–2026"
-  },
-  "LADWP": {
-    "a": {
-      "rate": [
-        10,
-        15
-      ],
-      "unit": "per kW a month of the season",
-      "scale": "kw",
-      "name": "LADWP demand response capacity incentive, day-ahead to two-hour notice",
-      "status": "verified_2025_tc",
-      "year": "2025",
-      "cite": {
-        "file": "flexuw/ladwp/config.py",
-        "url": "https://www.ladwp.com/sites/default/files/2025-06/Terms%20and%20Conditions%20-%20LADWP%20Demand%20Response%20CI%20Program.pdf",
-        "retrieved": "2026-09-02"
-      }
-    },
-    "b": {
-      "rate": [
-        0.25,
-        0.25
-      ],
-      "unit": "per kWh delivered in events",
-      "scale": "rate",
-      "short": "event energy",
-      "name": "LADWP C&I demand response event energy payment",
-      "status": "verified_2025_tc",
-      "cite": {
-        "file": "flexuw/ladwp/config.py",
-        "url": "https://www.ladwp.com/sites/default/files/2025-06/Terms%20and%20Conditions%20-%20LADWP%20Demand%20Response%20CI%20Program.pdf",
-        "retrieved": "2026-09-02"
-      }
-    },
-    "priced": true,
-    "model": false,
-    "note": "LADWP capacity incentive, $10 to $15 per kW a month, June 15 to October 15, 2025 terms. Event energy is additional."
-  },
-  "CAISO": {
-    "a": null,
-    "b": null,
-    "priced": false,
-    "model": false,
-    "note": "Not priced yet: no program source on file for California outside Los Angeles."
   }
 };
 // The share of a campus Meridian designs as flexible in the illustrative campus above (40 of 96 MW).

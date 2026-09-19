@@ -70,7 +70,7 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
   // A place saved before the site went Texas-only is no longer offered, so it falls back too.
   useEffect(() => {
     const saved = readPlace();
-    const stale = saved?.program === "LADWP" || saved?.program === "CAISO";
+    const stale = !!saved && !PROGRAMS[saved.program];
     if (!saved || saved.guessed || stale) pickHub(HUBS[0]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
