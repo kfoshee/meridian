@@ -169,7 +169,10 @@ export default function Landing() {
           <div className="hero-sun-tail" /><div className="hero-sun-haze" /><div className="hero-sun-bloom" /><div className="hero-sun-halo" /><div className="hero-sun-core" />
         </div>
         <div className="hero-clear hero-fade" />
-        <h1 className="hero-copy"><strong>Meridian</strong> manages power for AI data centers.</h1>
+        <div className="hero-copy">
+          <h1><strong>Meridian</strong> manages power for AI data centers.</h1>
+          <p className="hero-sub">Frontier Texas grid-tightness forecasting.</p>
+        </div>
         <div ref={yearCopy} className={`year-copy${yState >= 0 ? " lit" : ""}`} aria-live="polite">
           {yLines.map((l, i) => <p key={i} className={`year-state${i === yState ? " on" : i < yState ? " past" : ""}`}><span>{l}</span></p>)}
         </div>

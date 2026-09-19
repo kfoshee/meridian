@@ -4,7 +4,7 @@ import { loadIndex } from "@/lib/data";
 import type { Index, IndexNode } from "@/lib/types";
 import { PROGRAMS, type Program } from "./programs";
 
-// Where is the site? Six places to click, a city to type, the browser's exact location — or, before
+// Where is the site? Four Texas places to click, a city to type, the browser's exact location — or, before
 // any of that, a coarse guess from the visitor's network address (no prompt, no permission) that
 // the page names as a guess and lets them change. The answer is a market program (what pays for
 // flexibility there) and, in ERCOT, a node in the model.
@@ -16,8 +16,6 @@ const HUBS: { id: string | null; label: string; program: Program }[] = [
   { id: "HB_NORTH", label: "Dallas", program: "Oncor" },
   { id: "HB_SOUTH", label: "San Antonio", program: "ERCOT" },
   { id: "HB_WEST", label: "West Texas", program: "Oncor" },
-  { id: null, label: "Los Angeles", program: "LADWP" },
-  { id: null, label: "California", program: "CAISO" },
 ];
 type City = [string, number, number, Program | null];
 const CITIES: City[] = [
@@ -26,7 +24,6 @@ const CITIES: City[] = [
   ["Midland", 31.99, -102.08, "Oncor"], ["Odessa", 31.85, -102.37, "Oncor"], ["Abilene", 32.45, -99.73, "AEP Texas"], ["Lubbock", 33.58, -101.86, "Oncor"], ["Sweetwater", 32.47, -100.4, "AEP Texas"], ["San Angelo", 31.46, -100.44, "AEP Texas"],
   ["Corpus Christi", 27.8, -97.4, "AEP Texas"], ["Laredo", 27.51, -99.51, "AEP Texas"], ["McAllen", 26.2, -98.23, "AEP Texas"], ["Brownsville", 25.9, -97.5, "AEP Texas"], ["Victoria", 28.81, -97.0, "AEP Texas"],
   ["Tyler", 32.35, -95.3, "Oncor"], ["Longview", 32.5, -94.74, "AEP Texas"], ["College Station", 30.63, -96.33, "ERCOT"], ["Galveston", 29.3, -94.8, "TNMP"], ["Lewisville", 33.05, -96.99, "TNMP"],
-  ["Los Angeles", 34.05, -118.24, "LADWP"], ["Long Beach", 33.77, -118.19, "CAISO"], ["Irvine", 33.68, -117.83, "CAISO"], ["San Diego", 32.72, -117.16, "CAISO"], ["San Francisco", 37.77, -122.42, "CAISO"], ["San Jose", 37.34, -121.89, "CAISO"], ["Santa Clara", 37.35, -121.95, "CAISO"], ["Oakland", 37.8, -122.27, "CAISO"], ["Sacramento", 38.58, -121.49, "CAISO"], ["Fresno", 36.74, -119.79, "CAISO"], ["Bakersfield", 35.37, -119.02, "CAISO"], ["Riverside", 33.95, -117.4, "CAISO"],
   ["El Paso", 31.76, -106.49, null], ["Amarillo", 35.22, -101.83, null], ["Beaumont", 30.08, -94.1, null], ["Port Arthur", 29.9, -93.93, null], ["Texarkana", 33.43, -94.05, null],
 ];
 const KEY = "meridian.where";
@@ -51,15 +48,13 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     const n = ix && inTexas(lat, lon) ? nearest(ix.nodes, lat, lon) : null;
     pick({ nodeId: n?.id ?? null, nodeName: n?.name ?? label, label, program, typed: true });
   };
-  const pickCity = (c: City) => { if (!c[3]) { setNote(`${c[0]} is outside ERCOT and CAISO.`); return; } fromPoint(c[0], c[1], c[2], c[3]); };
-  // The place a point resolves to, or null when it is outside both markets.
+  const pickCity = (c: City) => { if (!c[3]) { setNote(`${c[0]} is outside ERCOT.`); return; } fromPoint(c[0], c[1], c[2], c[3]); };
+  // The place a point resolves to, or null when it is outside ERCOT.
   const placeAt = (lat: number, lon: number, guessed = false): Place | null => {
-    const inCal = lat > 32.5 && lat < 42.1 && lon > -124.5 && lon < -114.1, inLA = lat > 33.7 && lat < 34.35 && lon > -118.7 && lon < -117.7;
-    if (!inTexas(lat, lon) && !inCal) return null;
+    if (!inTexas(lat, lon)) return null;
     const c = CITIES.filter(x => x[3]).reduce((b, x) => dist(lat, lon, x[1], x[2]) < dist(lat, lon, b[1], b[2]) ? x : b, CITIES[0]);
-    const program: Program = inLA ? "LADWP" : inCal ? "CAISO" : (c[3] as Program);
-    const n = ix && inTexas(lat, lon) ? nearest(ix.nodes, lat, lon) : null;
-    return { nodeId: n?.id ?? null, nodeName: n?.name ?? `near ${c[0]}`, label: `near ${c[0]}`, program, typed: true, guessed, at: [lat, lon] };
+    const n = ix ? nearest(ix.nodes, lat, lon) : null;
+    return { nodeId: n?.id ?? null, nodeName: n?.name ?? `near ${c[0]}`, label: `near ${c[0]}`, program: c[3] as Program, typed: true, guessed, at: [lat, lon] };
   };
   const pickGuess = (p: Place) => { savePlace(p); setQ(""); setNote(""); onChange(p); };
   const locate = () => {
@@ -67,19 +62,24 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
     setNote("Finding you…");
     navigator.geolocation.getCurrentPosition(pos => {
       const p = placeAt(pos.coords.latitude, pos.coords.longitude);
-      if (!p) { setNote("You are outside ERCOT and CAISO. Pick a place."); return; }
+      if (!p) { setNote("You are outside ERCOT. Pick a place."); return; }
       pick(p);
     }, () => setNote("Location was blocked. Type a city."), { timeout: 8000 });
   };
   // Houston is preselected until the visitor picks something else
-  useEffect(() => { const saved = readPlace(); if (!saved || saved.guessed) pickHub(HUBS[0]); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // A place saved before the site went Texas-only is no longer offered, so it falls back too.
+  useEffect(() => {
+    const saved = readPlace();
+    const stale = saved?.program === "LADWP" || saved?.program === "CAISO";
+    if (!saved || saved.guessed || stale) pickHub(HUBS[0]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [openList, setOpenList] = useState(false);
   const [sel, setSel] = useState(0);
   const query = q.trim().toLowerCase();
   const rows = CITIES.filter(c => !query || c[0].toLowerCase().startsWith(query) || c[0].toLowerCase().includes(" " + query));
-  const tx = rows.filter(c => c[2] > -107 && c[1] < 37 && c[2] > -106.7 || (c[3] && c[3] !== "LADWP" && c[3] !== "CAISO")), ca = rows.filter(c => c[3] === "LADWP" || c[3] === "CAISO"), out = rows.filter(c => !c[3]);
-  const ordered: (City | string)[] = [...(tx.length ? ["Texas", ...tx] : []), ...(ca.length ? ["California", ...ca] : []), ...(out.length ? ["Outside the markets", ...out] : [])];
+  const tx = rows.filter(c => c[3]), out = rows.filter(c => !c[3]);
+  const ordered: (City | string)[] = [...(tx.length ? ["Texas", ...tx] : []), ...(out.length ? ["Outside ERCOT", ...out] : [])];
   const pickable = ordered.filter((r): r is City => typeof r !== "string" && !!r[3]);
   const choose = (c: City) => { pickCity(c); setOpenList(false); };
   const onKey = (e: React.KeyboardEvent) => {
@@ -100,7 +100,7 @@ export default function Where({ value, onChange }: { value: Place | null; onChan
           <ul className="city-list" role="listbox">
             {ordered.map((r, i) => typeof r === "string" ? <li key={`h${i}`} className="hd" role="presentation">{r}</li> : (
               <li key={r[0]} role="option" aria-selected={pickable[sel] === r} className={`${pickable[sel] === r ? "sel" : ""}${r[3] ? "" : " out"}`} onMouseDown={e => { e.preventDefault(); if (r[3]) choose(r); }}>
-                {r[0]}<span>{r[3] ? (r[3] === "ERCOT" ? "ERCOT" : r[3]) : "outside ERCOT and CAISO"}</span>
+                {r[0]}<span>{r[3] ? (r[3] === "ERCOT" ? "ERCOT" : r[3]) : "outside ERCOT"}</span>
               </li>))}
           </ul>
         )}
