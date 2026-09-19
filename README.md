@@ -4,6 +4,13 @@
 
 [![Live site](https://img.shields.io/badge/live-meridian.kianfoshee.com-C9A84C)](https://meridian.kianfoshee.com)
 
+> **This repository no longer publishes the live site.** As of 2026-09-18,
+> meridian.kianfoshee.com is served by the Vercel project `ercot-flex` from
+> `~/ercot-flex/site`, so the site and its `/api/contact` route share one origin.
+> GitHub Pages and the `docs/` export are retired: editing this tree will not change
+> what visitors see. Make site changes in `~/ercot-flex/site` and deploy with
+> `vercel deploy --prod`.
+
 Meridian is a decision-support system for data-center demand flexibility. It forecasts when grid conditions may tighten, evaluates a facility's approved operating constraints, and produces a response plan for an operator to review.
 
 ![Meridian product preview](public/og.png)
